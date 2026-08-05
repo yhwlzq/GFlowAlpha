@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.eggs/
+
+# 环境
+.venv/
+venv/
+env/
+
+# 数据 (大文件, 不入库)
+data/*.parquet
+data/*.csv
+
+# 运行产物
+outputs/
+
+# Julia (PySR) 环境
+julia_env/
+
+# IDE
+.idea/
+.vscode/
+
+# 系统
+.DS_Store
+*.log

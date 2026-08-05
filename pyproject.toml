@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gflow-alpha"
+version = "9.1.0"
+description = "高频因子挖掘系统: GFlowNet + PySR 符号回归发现 alpha 因子 (中证500/沪深300)"
+requires-python = ">=3.13"
+dependencies = [
+    "pandas>=2.0",
+    "numpy>=1.26",
+    "torch>=2.0",
+    "scipy>=1.11",
+    "scikit-learn>=1.3",
+    "statsmodels>=0.14",
+    "sympy>=1.12",
+    "matplotlib>=3.7",
+    "lightgbm>=4.0",
+    "baostock",
+    "juliacall",
+    "juliapkg",
+]
+
+[project.optional-dependencies]
+pysr = ["pysr>=1.0"]          # 符号回归引擎 (Julia 后端, 可选)
+gp = ["gplearn"]              # GP 基线 (可选)
+llm = ["openai>=1.0"]         # LLM 约束生成 (可选)
+dev = ["pytest", "pytest-cov"]
+
+[project.scripts]
+alpha-mine = "alpha.experiments.transform_pysr_primary:console_main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
