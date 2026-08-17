@@ -1,0 +1,322 @@
+{
+  "factors": {
+    "GP_000": {
+      "formula": "sub(log1p(sub(sub(X77, add(sub(log1p(X6), square(X73)), log1p(X72))), log1p(X7))), sign(X9))",
+      "gate_status": null,
+      "metrics": {
+        "FM_coef": 0.000196,
+        "FM_se": 7.7e-05,
+        "FM_tstat": 2.554,
+        "FM_pvalue": 0.011269,
+        "FM_n_periods": 241,
+        "FM_R2_avg": 0.0074,
+        "FM_coef_pos_ratio": 0.6183,
+        "FM_coef_sig_ratio": 0.2946,
+        "LS_spread": 0.00077,
+        "Rank_IC": 0.0235,
+        "ICIR": 0.2709,
+        "formula": "sub(log1p(sub(sub(X77, add(sub(log1p(X6), square(X73)), log1p(X72))), log1p(X7))), sign(X9))",
+        "fitness": 0.4299896808121456,
+        "length": 17
+      },
+      "registered_at": "2026-08-15T18:11:32.699187"
+    },
+    "GP_001": {
+      "formula": "sub(log1p(sub(sub(X77, add(sub(log1p(X6), square(X73)), log1p(X72))), log1p(X7))), sign(X9))",
+      "gate_status": null,
+      "metrics": {
+        "FM_coef": 0.000196,
+        "FM_se": 7.7e-05,
+        "FM_tstat": 2.554,
+        "FM_pvalue": 0.011269,
+        "FM_n_periods": 241,
+        "FM_R2_avg": 0.0074,
+        "FM_coef_pos_ratio": 0.6183,
+        "FM_coef_sig_ratio": 0.2946,
+        "LS_spread": 0.00077,
+        "Rank_IC": 0.0235,
+        "ICIR": 0.2709,
+        "formula": "sub(log1p(sub(sub(X77, add(sub(log1p(X6), square(X73)), log1p(X72))), log1p(X7))), sign(X9))",
+        "fitness": 0.42901009214154195,
+        "length": 17
+      },
+      "registered_at": "2026-08-15T18:11:33.074946"
+    },
+    "GP_002": {
+      "formula": "sub(log1p(sub(sub(X77, add(sub(log1p(X6), square(X73)), log1p(X72))), log1p(X7))), sign(X9))",
+      "gate_status": null,
+      "metrics": {
+        "FM_coef": 0.000196,
+        "FM_se": 7.7e-05,
+        "FM_tstat": 2.554,
+        "FM_pvalue": 0.011269,
+        "FM_n_periods": 241,
+        "FM_R2_avg": 0.0074,
+        "FM_coef_pos_ratio": 0.6183,
+        "FM_coef_sig_ratio": 0.2946,
+        "LS_spread": 0.00077,
+        "Rank_IC": 0.0235,
+        "ICIR": 0.2709,
+        "formula": "sub(log1p(sub(sub(X77, add(sub(log1p(X6), square(X73)), log1p(X72))), log1p(X7))), sign(X9))",
+        "fitness": 0.42820798389685444,
+        "length": 17
+      },
+      "registered_at": "2026-08-15T18:11:33.445930"
+    },
+    "GP_003": {
+      "formula": "sub(log1p(sub(sub(X77, add(sub(log1p(log1p(X6)), square(X73)), log1p(X72))), log1p(X7))), sign(X9))",
+      "gate_status": null,
+      "metrics": {
+        "FM_coef": 0.000168,
+        "FM_se": 7.5e-05,
+        "FM_tstat": 2.2242,
+        "FM_pvalue": 0.027067,
+        "FM_n_periods": 241,
+        "FM_R2_avg": 0.0069,
+        "FM_coef_pos_ratio": 0.5851,
+        "FM_coef_sig_ratio": 0.2697,
+        "LS_spread": 0.000598,
+        "Rank_IC": 0.0241,
+        "ICIR": 0.2762,
+        "formula": "sub(log1p(sub(sub(X77, add(sub(log1p(log1p(X6)), square(X73)), log1p(X72))), log1p(X7))), sign(X9))",
+        "fitness": 0.42676544316888254,
+        "length": 18
+      },
+      "registered_at": "2026-08-15T18:11:33.816474"
+    },
+    "GP_004": {
+      "formula": "sub(log1p(sub(sub(X77, add(sub(log1p(log1p(X6)), square(X73)), log1p(X72))), log1p(X7))), sign(X9))",
+      "gate_status": null,
+      "metrics": {
+        "FM_coef": 0.000168,
+        "FM_se": 7.5e-05,
+        "FM_tstat": 2.2242,
+        "FM_pvalue": 0.027067,
+        "FM_n_periods": 241,
+        "FM_R2_avg": 0.0069,
+        "FM_coef_pos_ratio": 0.5851,
+        "FM_coef_sig_ratio": 0.2697,
+        "LS_spread": 0.000598,
+        "Rank_IC": 0.0241,
+        "ICIR": 0.2762,
+        "formula": "sub(log1p(sub(sub(X77, add(sub(log1p(log1p(X6)), square(X73)), log1p(X72))), log1p(X7))), sign(X9))",
+        "fitness": 0.4266640812192508,
+        "length": 18
+      },
+      "registered_at": "2026-08-15T18:11:34.206346"
+    },
+    "GP_005": {
+      "formula": "sub(log1p(sub(sub(X77, add(sub(log1p(log1p(X6)), square(X73)), log1p(X72))), log1p(X7))), sign(X9))",
+      "gate_status": null,
+      "metrics": {
+        "FM_coef": 0.000168,
+        "FM_se": 7.5e-05,
+        "FM_tstat": 2.2242,
+        "FM_pvalue": 0.027067,
+        "FM_n_periods": 241,
+        "FM_R2_avg": 0.0069,
+        "FM_coef_pos_ratio": 0.5851,
+        "FM_coef_sig_ratio": 0.2697,
+        "LS_spread": 0.000598,
+        "Rank_IC": 0.0241,
+        "ICIR": 0.2762,
+        "formula": "sub(log1p(sub(sub(X77, add(sub(log1p(log1p(X6)), square(X73)), log1p(X72))), log1p(X7))), sign(X9))",
+        "fitness": 0.4259147772833062,
+        "length": 18
+      },
+      "registered_at": "2026-08-15T18:11:34.576279"
+    },
+    "GP_006": {
+      "formula": "sub(log1p(sub(sub(X77, add(sub(log1p(X6), square(X73)), log1p(X72))), log1p(X7))), sign(X9))",
+      "gate_status": null,
+      "metrics": {
+        "FM_coef": 0.000196,
+        "FM_se": 7.7e-05,
+        "FM_tstat": 2.554,
+        "FM_pvalue": 0.011269,
+        "FM_n_periods": 241,
+        "FM_R2_avg": 0.0074,
+        "FM_coef_pos_ratio": 0.6183,
+        "FM_coef_sig_ratio": 0.2946,
+        "LS_spread": 0.00077,
+        "Rank_IC": 0.0235,
+        "ICIR": 0.2709,
+        "formula": "sub(log1p(sub(sub(X77, add(sub(log1p(X6), square(X73)), log1p(X72))), log1p(X7))), sign(X9))",
+        "fitness": 0.42485097571160446,
+        "length": 17
+      },
+      "registered_at": "2026-08-15T18:11:34.941013"
+    },
+    "GP_007": {
+      "formula": "sub(log1p(sub(sub(X77, add(sub(log1p(X6), square(X73)), log1p(X72))), log1p(X7))), sign(X9))",
+      "gate_status": null,
+      "metrics": {
+        "FM_coef": 0.000196,
+        "FM_se": 7.7e-05,
+        "FM_tstat": 2.554,
+        "FM_pvalue": 0.011269,
+        "FM_n_periods": 241,
+        "FM_R2_avg": 0.0074,
+        "FM_coef_pos_ratio": 0.6183,
+        "FM_coef_sig_ratio": 0.2946,
+        "LS_spread": 0.00077,
+        "Rank_IC": 0.0235,
+        "ICIR": 0.2709,
+        "formula": "sub(log1p(sub(sub(X77, add(sub(log1p(X6), square(X73)), log1p(X72))), log1p(X7))), sign(X9))",
+        "fitness": 0.42439591368026497,
+        "length": 17
+      },
+      "registered_at": "2026-08-15T18:11:35.309732"
+    },
+    "GP_008": {
+      "formula": "sub(log1p(sub(sub(X77, add(sub(log1p(X6), square(X73)), log1p(X72))), log1p(X7))), sign(X9))",
+      "gate_status": null,
+      "metrics": {
+        "FM_coef": 0.000196,
+        "FM_se": 7.7e-05,
+        "FM_tstat": 2.554,
+        "FM_pvalue": 0.011269,
+        "FM_n_periods": 241,
+        "FM_R2_avg": 0.0074,
+        "FM_coef_pos_ratio": 0.6183,
+        "FM_coef_sig_ratio": 0.2946,
+        "LS_spread": 0.00077,
+        "Rank_IC": 0.0235,
+        "ICIR": 0.2709,
+        "formula": "sub(log1p(sub(sub(X77, add(sub(log1p(X6), square(X73)), log1p(X72))), log1p(X7))), sign(X9))",
+        "fitness": 0.4233705485969408,
+        "length": 17
+      },
+      "registered_at": "2026-08-15T18:11:35.683759"
+    },
+    "GP_009": {
+      "formula": "sub(log1p(sub(sub(X77, add(sub(log1p(X6), square(X73)), log1p(X72))), log1p(X7))), sign(X9))",
+      "gate_status": null,
+      "metrics": {
+        "FM_coef": 0.000196,
+        "FM_se": 7.7e-05,
+        "FM_tstat": 2.554,
+        "FM_pvalue": 0.011269,
+        "FM_n_periods": 241,
+        "FM_R2_avg": 0.0074,
+        "FM_coef_pos_ratio": 0.6183,
+        "FM_coef_sig_ratio": 0.2946,
+        "LS_spread": 0.00077,
+        "Rank_IC": 0.0235,
+        "ICIR": 0.2709,
+        "formula": "sub(log1p(sub(sub(X77, add(sub(log1p(X6), square(X73)), log1p(X72))), log1p(X7))), sign(X9))",
+        "fitness": 0.4221846117885829,
+        "length": 17
+      },
+      "registered_at": "2026-08-15T18:11:36.054753"
+    },
+    "GP_010": {
+      "formula": "sub(log1p(sub(sub(X77, add(sub(log1p(X6), square(X73)), log1p(X72))), log1p(X7))), sign(X9))",
+      "gate_status": null,
+      "metrics": {
+        "FM_coef": 0.000196,
+        "FM_se": 7.7e-05,
+        "FM_tstat": 2.554,
+        "FM_pvalue": 0.011269,
+        "FM_n_periods": 241,
+        "FM_R2_avg": 0.0074,
+        "FM_coef_pos_ratio": 0.6183,
+        "FM_coef_sig_ratio": 0.2946,
+        "LS_spread": 0.00077,
+        "Rank_IC": 0.0235,
+        "ICIR": 0.2709,
+        "formula": "sub(log1p(sub(sub(X77, add(sub(log1p(X6), square(X73)), log1p(X72))), log1p(X7))), sign(X9))",
+        "fitness": 0.42157135477165664,
+        "length": 17
+      },
+      "registered_at": "2026-08-15T18:11:36.422763"
+    },
+    "GP_011": {
+      "formula": "sub(log1p(sub(sub(X77, add(sub(log1p(X6), square(X73)), log1p(X72))), log1p(X7))), sign(X9))",
+      "gate_status": null,
+      "metrics": {
+        "FM_coef": 0.000196,
+        "FM_se": 7.7e-05,
+        "FM_tstat": 2.554,
+        "FM_pvalue": 0.011269,
+        "FM_n_periods": 241,
+        "FM_R2_avg": 0.0074,
+        "FM_coef_pos_ratio": 0.6183,
+        "FM_coef_sig_ratio": 0.2946,
+        "LS_spread": 0.00077,
+        "Rank_IC": 0.0235,
+        "ICIR": 0.2709,
+        "formula": "sub(log1p(sub(sub(X77, add(sub(log1p(X6), square(X73)), log1p(X72))), log1p(X7))), sign(X9))",
+        "fitness": 0.4206430042184901,
+        "length": 17
+      },
+      "registered_at": "2026-08-15T18:11:36.808817"
+    },
+    "GP_012": {
+      "formula": "sub(log1p(sub(sub(X77, add(sub(log1p(log1p(X6)), square(X73)), log1p(X72))), log1p(X7))), sign(X9))",
+      "gate_status": null,
+      "metrics": {
+        "FM_coef": 0.000168,
+        "FM_se": 7.5e-05,
+        "FM_tstat": 2.2242,
+        "FM_pvalue": 0.027067,
+        "FM_n_periods": 241,
+        "FM_R2_avg": 0.0069,
+        "FM_coef_pos_ratio": 0.5851,
+        "FM_coef_sig_ratio": 0.2697,
+        "LS_spread": 0.000598,
+        "Rank_IC": 0.0241,
+        "ICIR": 0.2762,
+        "formula": "sub(log1p(sub(sub(X77, add(sub(log1p(log1p(X6)), square(X73)), log1p(X72))), log1p(X7))), sign(X9))",
+        "fitness": 0.4200664666362809,
+        "length": 18
+      },
+      "registered_at": "2026-08-15T18:11:37.197280"
+    },
+    "GP_013": {
+      "formula": "sub(log1p(sub(sub(X77, add(sub(log1p(log1p(X6)), square(X73)), log1p(X72))), log1p(X7))), sign(X9))",
+      "gate_status": null,
+      "metrics": {
+        "FM_coef": 0.000168,
+        "FM_se": 7.5e-05,
+        "FM_tstat": 2.2242,
+        "FM_pvalue": 0.027067,
+        "FM_n_periods": 241,
+        "FM_R2_avg": 0.0069,
+        "FM_coef_pos_ratio": 0.5851,
+        "FM_coef_sig_ratio": 0.2697,
+        "LS_spread": 0.000598,
+        "Rank_IC": 0.0241,
+        "ICIR": 0.2762,
+        "formula": "sub(log1p(sub(sub(X77, add(sub(log1p(log1p(X6)), square(X73)), log1p(X72))), log1p(X7))), sign(X9))",
+        "fitness": 0.41998917116438195,
+        "length": 18
+      },
+      "registered_at": "2026-08-15T18:11:37.569453"
+    },
+    "GP_014": {
+      "formula": "sub(log1p(sub(sub(X77, add(sub(log1p(X6), square(X73)), log1p(X72))), log1p(X7))), sign(X9))",
+      "gate_status": null,
+      "metrics": {
+        "FM_coef": 0.000196,
+        "FM_se": 7.7e-05,
+        "FM_tstat": 2.554,
+        "FM_pvalue": 0.011269,
+        "FM_n_periods": 241,
+        "FM_R2_avg": 0.0074,
+        "FM_coef_pos_ratio": 0.6183,
+        "FM_coef_sig_ratio": 0.2946,
+        "LS_spread": 0.00077,
+        "Rank_IC": 0.0235,
+        "ICIR": 0.2709,
+        "formula": "sub(log1p(sub(sub(X77, add(sub(log1p(X6), square(X73)), log1p(X72))), log1p(X7))), sign(X9))",
+        "fitness": 0.4197838221392952,
+        "length": 17
+      },
+      "registered_at": "2026-08-15T18:11:37.953615"
+    }
+  },
+  "meta": {
+    "version": "GP_baseline_gplearn"
+  }
+}

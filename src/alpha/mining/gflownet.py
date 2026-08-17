@@ -7,7 +7,7 @@ import torch.nn.functional as F
 from scipy.stats import spearmanr
 from dataclasses import dataclass, field
 from alpha.config import Config
-from alpha.mining.preprocessor import DataPreprocessor
+from .preprocessor import DataPreprocessor
 
 logger = logging.getLogger(__name__)
 

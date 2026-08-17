@@ -1,49 +1,92 @@
 # AGENTS.md
 
-## 这是什么
+## What this repo is
 
-中证500/沪深300 日频因子挖掘系统：用 GFlowNet 约束 + PySR 符号回归从 OHLCV 微观数据发现 alpha 因子，经 Fama-MacBeth 评估、中性化与回测后写入注册表。
+High-frequency (daily 5-min) quantitative factor mining system for Chinese A-shares (CSI500 / HS300). Uses **GFlowNet + PySR symbolic regression** to discover alpha factors from OHLCV microstructure data, with Fama-MacBeth evaluation, single-factor backtesting and stability checks.
 
-## 目录结构
+## Project structure
 
 ```
-src/alpha/
-  config.py                ← 全局配置 (Config), OUTPUT_ROOT="outputs"
-  data/                    ← data_fetcher (baostock), data_loader (CSI500Loader), load_data
-  features/                ← feature_registry (原子特征池)
-  mining/                  ← 核心: preprocessor/gflownet/pysr_engine/fm_regression/neutralize/orchestrator/registry/safe_ops/screener/stats_validator/walkforward/audit_logger
-  evaluation/              ← backtester(AcademicBacktester)/single_factor_test/check_time_stability/compare_benchmark/factor_compare_1/validate_factor_combo/transform_pysr_stablity_check
-  analysis/                ← heatmap/jaccard/diagnose/decode_gp_formulas/p5
-  experiments/
-    transform_pysr_primary.py   ← 主挖矿入口 (console: alpha-mine)
-    ablations/                  ← 消融实验1-8 + GA/GP (10个)
-    baselines/                  ← GP 基线
-  cli/                      ← run.sh / run_ablation.sh / run_baseline.sh / run_eval.sh
-data/                       ← parquet (gitignored)
-outputs/                    ← 统一结果目录; legacy/ 存历史产物
-docs/ tests/
+src/alpha/                  ← all real code lives here
+  research/                 ← industrial GFlowNet + PySR pipeline (research core)
+    common/                 ← mining engine: config, preprocessor, gflownet,
+    │                         orchestrator, pysr_engine, fm_regression,
+    │                         neutralize, registry, safe_ops, screener,
+    │                         stats_validator, walkforward, audit_logger
+    transform_pysr_primary.py         ← **primary/industrial pipeline** (run this)
+    transform_pysr_ablation5,7-9.py   ← ablation experiments (2×2 main: 7=no MLQC, 8=no GFlowNet, 9=random+no MLQC)
+    transform_pysr_ablation_gp_*.py   ← GP baseline (no gflownet)
+    transform_pysr_stablity_check.py  ← rolling-window stability check
+    transform_gp_baseline.py, gp_baseline.py  ← GP baseline
+    backtester.py, single_factor_test.py       ← evaluation
+    check_time_stability.py, compare_benchmark.py, factor_compare_1.py
+    validate_factor_combo.py          ← multi-factor complementarity
+    plot_factor_correlation_heatmap.py, decode_gp_formulas.py,
+    diagnose_single_features.py, p5.py, load_data.py  ← analysis
+  agents/                   ← legacy agent prototypes (PySR-only variants)
+    factor_llm_miner.py, gflownet_study1-6.py, p1..p7.py
+  data/data_fetcher.py      ← baostock data fetching
+data/                       ← parquet/csv market data (gitignored)
+outputs/                    ← UNIFIED experiment output root
+  run_<timestamp>_*/        ← current runs (PySR smoke runs land here via OUTPUT_DIR)
+  academic_v81/             ← historical factor_output_academic_v81 runs (run_* / ablation*)
+  pysr/                     ← old paper/PYSR/outputs runs
+  legacy/                   ← archived outputs: factor_output/, walkforward, comparisons, logs
+docs/                       ← architecture.md, run_guide.md
 ```
 
-## 运行
+`main.py` at the root is a PyCharm scaffold — ignore it.
+
+## Key files and which to run
+
+- **`src/alpha/experiments/transform_pysr_primary.py`** — The industrial-grade pipeline. Run this for production factor mining.
+- **`src/alpha/experiments/transform_pysr_ablation*.py`** — Ablation studies. 2×2 main table (GFlowNet whole × MLQC whole): 7=no MLQC, 8=no GFlowNet, 9=random+no MLQC (plus primary = 4 cells). Supplementary: 5=no constraints (no-prior lower bound), gp=no gflownet.
+- **`src/alpha/agents/factor_llm_miner.py`** — Alternate PySR pipeline with per-run timestamped output directories.
+
+## Environment
+
+- Python 3.13, venv at `.venv/`
+- `pyproject.toml` exists (editable install: `pip install -e ".[pysr,gp,dev]"`). Key deps:
+  - `pandas`, `numpy`, `torch`, `scipy`, `scikit-learn`, `statsmodels`, `sympy`, `lightgbm`, `juliacall`, `baostock`
+  - `pysr` (PySRRegressor — optional, `pip install pysr`)
+  - `openai` (optional, for LLM constraint generator)
+  - `akshare` (optional, for CSI1000 constituents in `data_fetcher.py` — Baostock has no CSI1000 interface)
+- PySR first run initializes a Julia backend under `.venv/julia_env` (network required).
+
+## Running
 
 ```bash
-./src/alpha/cli/run.sh --debug                     # 冒烟 (3股×60日)
-./src/alpha/cli/run.sh --data data/*.parquet --trials 60 --time 80
-OUTPUT_ROOT=/tmp/exp ./src/alpha/cli/run.sh        # 重定向结果
-pytest tests/
+# Activate venv
+source .venv/bin/activate
+
+# Run industrial pipeline (primary)
+python src/alpha/research/transform_pysr_primary.py --data data/csi500_daily_2020-07-20_to_2026-07-19.parquet
+
+# Tune trials / time budget / market
+python src/alpha/research/transform_pysr_primary.py --data data/csi500_daily_2021-06-30_to_2026-06-30.parquet --trials 60 --time 80 --market zs500
+
+# Ablations / baselines / evaluation
+python src/alpha/experiments/transform_pysr_ablation9_random_no_mlqc.py --data data/...
+python src/alpha/experiments/transform_gp_baseline.py --data data/...
+python src/alpha/experiments/single_factor_test.py --registry outputs/academic_v81/run_xxx/registry_academic.json
 ```
 
-## 数据格式
+- All `transform_*` entry scripts take `--data` (parquet/csv), `--trials`, `--time`; most accept `--market`.
+- Output lands relative to the CWD via `Config.OUTPUT_DIR`. Default dir name is `factor_output_academic_v81` (hardcoded in `common/config.py`). For a unified result root, run from the repo root and it will create `factor_output_academic_v81/` here — or set `Config.OUTPUT_DIR` to `outputs/<tag>` in the script.
 
-parquet 列: `date, code, open, high, low, close, volume, amount, turn, pctChg`
-`code` 会被 `CSI500Loader` rename 为 `symbol`。按 symbol+date 排序。
+## Data format
 
-## 坑
+Expected parquet/csv columns:
+- `datetime`, `symbol`, `close`, `open`, `high`, `low`, `volume`, `amount`, `industry_id`
+- Sorted by `symbol` then `datetime`
+- Sample data in `data/`: `csi500_daily_*.parquet` and `hs300_daily_*.parquet` (daily bars)
 
-- **类名/文件名保留历史命名**: `AcademicBacktester`, `AcademicDualEngine`, `registry_academic.json`, `transform_pysr_*` 均未改。
-- **输出目录**: 各脚本用 `Config.OUTPUT_ROOT` (默认 `outputs`) 建 `run_<ts>` / `ablationX_<ts>` 子目录，可用 `OUTPUT_ROOT` 环境变量整体重定向。
-- **PySR 可选**: 未装则静默跳过符号回归。Julia 后端首次运行会装 `.venv/julia_env` (较慢)。
-- **顶层脚本需 juliacall 环境变量**: 直接 `python -m alpha.experiments.*` 运行即可，脚本顶部已设 `PYTHON_JULIACALL_*`。
-- **无 CI/lint/typecheck**。验证方式是 `pytest tests/` + `--debug` 冒烟。
-- **预处理慢**: `prepare_full_pool` 全量 ~118s/683k 行，调试时用小样本。
-- **`calc_jaccard_homogeneity.py` 等分析脚本的 registry 默认路径指向 `outputs/legacy/`** 归档，必要时传 `--registry` 覆盖。
+## Gotchas
+
+- **No tests exist.** Verify by running a short run (`--trials 3 --time 10`) first.
+- **PySR is optional.** The pipeline silently skips symbolic regression if `pysr` is not installed.
+- **LLM constraints are optional.** Without a valid `LLM_API_KEY`, the pipeline falls back to safe defaults.
+- **Multiple FeatureRegistry classes exist** across files (`common/feature_registry.py` and per-script copies). When modifying features, check which file you're in.
+- **Hardcoded paths.** Some scripts still carry stale absolute/relative data defaults (e.g. `diagnose_single_features.py` `DATA_PATH`, argparse defaults pointing at the old `factor_mining_pipeline/...`). Always pass `--data data/...` explicitly.
+- **Memory-sensitive.** The pipelines build large feature pools. Use small `--trials`/`--time` for smoke tests.
+- **No CI, no lint config, no type checking** is configured.

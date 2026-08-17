@@ -1,0 +1,100 @@
+{
+  "config": {
+    "market": "zs500",
+    "train_months": 27,
+    "val_months": 12,
+    "test_months": 3,
+    "max_trials": 60,
+    "time_limit_min": 80,
+    "n_windows": 7
+  },
+  "windows": {
+    "5": {
+      "n_factors": 5,
+      "factors": [
+        {
+          "id": "ACAD_000",
+          "formula": "(ret_3d*0.03211957)*price_accel",
+          "features": [
+            "price_accel",
+            "vol_skew_ratio",
+            "body_ratio",
+            "ret_3d",
+            "vwap_dev_20d"
+          ],
+          "test_FM_tstat": 2.033,
+          "test_IC": -0.0222,
+          "test_ICIR": -0.2679
+        },
+        {
+          "id": "ACAD_002",
+          "formula": "body_ratio*square(0.1179408*ret_1d)",
+          "features": [
+            "ret_1d",
+            "body_ratio",
+            "gap",
+            "turnover_std_20d",
+            "vol_10d"
+          ],
+          "test_FM_tstat": 2.7877,
+          "test_IC": 0.0542,
+          "test_ICIR": 0.87
+        },
+        {
+          "id": "ACAD_015",
+          "formula": "square(rev_1d*0.1197647)",
+          "features": [
+            "liquidity_var",
+            "skew_20d",
+            "turnover_std_20d",
+            "rev_1d",
+            "max_ret_20d"
+          ],
+          "test_FM_tstat": 3.5995,
+          "test_IC": 0.0391,
+          "test_ICIR": 0.5382
+        },
+        {
+          "id": "ACAD_026",
+          "formula": "body_ratio*(square(rev_1d)*0.013913302)",
+          "features": [
+            "rev_1d",
+            "ret_60d",
+            "body_ratio",
+            "turnover_20d",
+            "volume_shock_5d"
+          ],
+          "test_FM_tstat": 2.7877,
+          "test_IC": 0.0542,
+          "test_ICIR": 0.87
+        },
+        {
+          "id": "ACAD_044",
+          "formula": "square(ret_1d)*0.014258106",
+          "features": [
+            "rev_3d",
+            "ret_1d",
+            "pv_corr_5d",
+            "turnover_ma_ratio_5_60",
+            "min_ret_20d"
+          ],
+          "test_FM_tstat": 3.5995,
+          "test_IC": 0.0391,
+          "test_ICIR": 0.5382
+        }
+      ]
+    },
+    "6": {
+      "n_factors": 0,
+      "factors": []
+    }
+  },
+  "cross_window": {
+    "n_evals": 5,
+    "n_passed": 0,
+    "hit_rate": 0.0,
+    "mean_tstat": 1.2422799999999998,
+    "mean_ic": 0.038939999999999995,
+    "mean_icir": 0.3996200000000001
+  }
+}

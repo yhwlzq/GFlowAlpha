@@ -23,14 +23,12 @@ import pandas as pd
 import seaborn as sns
 from scipy.stats import spearmanr
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from alpha.config import REPO_ROOT, Config, set_global_seed
+from alpha.config import Config, set_global_seed
 from alpha.data.data_loader import CSI500Loader
 from alpha.mining.preprocessor import DataPreprocessor
 from alpha.mining.safe_ops import SafeOps
-
-_REPO_ROOT = REPO_ROOT
-_LEGACY_REGISTRY = os.path.join(_REPO_ROOT, 'outputs', 'legacy', 'root_factor_output_academic_v81', 'run_20260720_171219', 'registry_academic.json')
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s | %(message)s',
                     handlers=[logging.StreamHandler(sys.stdout)])
@@ -178,13 +176,13 @@ def plot_heatmap(corr_matrix: np.ndarray,
 
 def main():
     parser = argparse.ArgumentParser(description='因子相关性热力图绘制')
-    parser.add_argument('--registry', type=str, default=_LEGACY_REGISTRY, help='注册表 JSON 路径 (与 --formula 互斥)')
+    parser.add_argument('--registry', type=str, default="", help='注册表 JSON 路径 (与 --formula 互斥)')
    
     parser.add_argument('--data', type=str,
-                        default=os.path.join(_REPO_ROOT, 'data', 'csi500_daily_2020-07-20_to_2026-07-19.parquet'))
+                        default='data/csi500_daily_2021-06-30_to_2026-06-30.parquet')
     parser.add_argument('--output', type=str,
-                        default=os.path.join(_REPO_ROOT, 'outputs'))
-    parser.add_argument('--seed', type=int, default=42)
+                        default='outputs')
+    parser.add_argument('--seed', type=int, default=Config.SEED)
     args = parser.parse_args()
 
     set_global_seed(args.seed)

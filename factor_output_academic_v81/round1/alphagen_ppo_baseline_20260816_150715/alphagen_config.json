@@ -1,0 +1,15 @@
+{
+  "data": "data/csi500_daily_2021-06-30_to_2026-06-30.parquet",
+  "steps": 800,
+  "pool_capacity": 3,
+  "seed": 42,
+  "n_layers": 2,
+  "d_model": 128,
+  "n_steps_ppo": 512,
+  "batch_size": 128,
+  "target": "Ref(close,-1)/close-1 (前向1日收益)",
+  "max_backtrack_days": 100,
+  "max_future_days": 1,
+  "device": "cuda",
+  "train_seconds": 9.6
+}

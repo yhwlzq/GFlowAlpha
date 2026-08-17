@@ -1,0 +1,67 @@
+{
+  "config": {
+    "market": "zs500",
+    "train_months": 36,
+    "val_months": 12,
+    "test_months": 12,
+    "max_trials": 50,
+    "time_limit_min": 80,
+    "n_windows": 6
+  },
+  "windows": {
+    "2": {
+      "n_factors": 0,
+      "factors": []
+    },
+    "3": {
+      "n_factors": 3,
+      "factors": [
+        {
+          "id": "ACAD_013",
+          "formula": "square(square(rev_2d)*(-0.0148573015*high_low_volume_corr_10d))",
+          "features": [
+            "volume_std_5d",
+            "volume_shock_5d",
+            "skew_20d",
+            "high_low_volume_corr_10d",
+            "rev_2d"
+          ],
+          "test_FM_tstat": 2.5917,
+          "test_IC": 0.0331,
+          "test_ICIR": 0.4783
+        },
+        {
+          "id": "ACAD_019",
+          "formula": "square(ma_cross_5d*0.09959057)",
+          "features": [
+            "boll_width_20d",
+            "vol_20d",
+            "ret_5d",
+            "ma_cross_5d",
+            "ret_20d"
+          ],
+          "test_FM_tstat": 4.0891,
+          "test_IC": 0.0346,
+          "test_ICIR": 0.3346
+        },
+        {
+          "id": "ACAD_027",
+          "formula": "square(ret_1d*0.10692)",
+          "features": [
+            "ret_1d",
+            "turnover_illuminated_20d",
+            "turnover_5d",
+            "vol_skew_ratio",
+            "body_ratio"
+          ],
+          "test_FM_tstat": 4.8421,
+          "test_IC": 0.0323,
+          "test_ICIR": 0.3216
+        }
+      ]
+    }
+  },
+  "cross_window": {
+    "n_evals": 0
+  }
+}

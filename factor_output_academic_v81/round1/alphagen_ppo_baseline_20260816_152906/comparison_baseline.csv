@@ -1,0 +1,2 @@
+tag,path,n_registered,n_production,mean_abs_t,max_abs_t,mean_abs_icir,mean_abs_ic,feature_union,structure_unique
+AlphaGen-PPO (无MLQC),factor_output_academic_v81/alphagen_ppo_baseline_20260816_152906/registry_academic.json,20,1,1.9492649999999998,3.7512,0.06626499999999999,0.00924,6,20

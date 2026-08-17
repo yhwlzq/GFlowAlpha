@@ -6,7 +6,8 @@ class SafeOps:
     @staticmethod
     def protected_div(left, right, default=0.0):
         left, right = np.asarray(left, dtype=np.float32), np.asarray(right, dtype=np.float32)
-        return np.where(np.abs(right) >= 1e-8, left / right, np.float32(default))
+        with np.errstate(divide='ignore', invalid='ignore', over='ignore'):
+            return np.where(np.abs(right) >= 1e-8, left / right, np.float32(default))
 
     @staticmethod
     def safe_sigmoid(x):
@@ -21,7 +22,8 @@ class SafeOps:
     @staticmethod
     def safe_inv(x):
         x = np.asarray(x, dtype=np.float32)
-        return np.where(np.abs(x) > 1e-8, 1.0 / x, 0.0)
+        with np.errstate(divide='ignore', invalid='ignore', over='ignore'):
+            return np.where(np.abs(x) > 1e-8, 1.0 / x, 0.0)
 
     @staticmethod
     def safe_cube(x):

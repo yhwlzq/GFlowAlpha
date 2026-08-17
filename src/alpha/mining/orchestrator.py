@@ -8,12 +8,12 @@ import pandas as pd
 import sympy as sp
 from scipy.stats import spearmanr
 from alpha.config import Config
-from alpha.mining.safe_ops import SafeOps
-from alpha.mining.preprocessor import DataPreprocessor
-from alpha.mining.fm_regression import FMRegressionResult, FamaMacBethRegressor
-from alpha.mining.pysr_engine import PySRMiningEngine
-from alpha.mining.gflownet import FeatureMetadataExtractor, GFlowNetPolicy_Transformer, TrajectorySampler_Transformer, GFlowNetTrainerInternal
-from alpha.mining.registry import FactorRegistry
+from .safe_ops import SafeOps
+from .preprocessor import DataPreprocessor
+from .fm_regression import FMRegressionResult, FamaMacBethRegressor
+from .pysr_engine import PySRMiningEngine
+from .gflownet import FeatureMetadataExtractor, GFlowNetPolicy_Transformer, TrajectorySampler_Transformer, GFlowNetTrainerInternal
+from .registry import FactorRegistry
 
 logger = logging.getLogger(__name__)
 
@@ -141,42 +141,13 @@ class MiningOrchestrator:
         return count
 
     def _compute_reward(self, fm_result: FMRegressionResult, used_features: List[str],
-                        formula: str = "") -> Tuple[float, Dict]:
+                        formula: str = "", robustness: float = 1.0) -> Tuple[float, Dict]:
         debug = {}
 
         abs_t = abs(fm_result.t_stat)
         raw_icir = fm_result.rank_icir
         abs_icir = abs(raw_icir)
         abs_ic = abs(fm_result.rank_ic_mean)
-
-        if abs_icir < 0.08:
-            debug['t_ctrl_score'] = 0.0
-            debug['icir_score'] = 0.0
-            debug['ic_score'] = 0.0
-            debug['reason'] = 'ICIR_too_low'
-            final_reward = 0.01
-            debug['final_reward'] = final_reward
-            return final_reward, debug
-
-        if abs_ic < 0.005:
-            debug['t_ctrl_score'] = 0.0
-            debug['icir_score'] = 0.0
-            debug['ic_score'] = 0.0
-            debug['reason'] = 'IC_too_low'
-            final_reward = 0.01
-            debug['final_reward'] = final_reward
-            return final_reward, debug
-
-        raw_ic = fm_result.rank_ic_mean
-        if np.sign(fm_result.t_stat) * np.sign(raw_ic) < 0 or \
-           np.sign(fm_result.t_stat) * np.sign(raw_icir) < 0:
-            debug['t_ctrl_score'] = 0.0
-            debug['icir_score'] = 0.0
-            debug['ic_score'] = 0.0
-            debug['reason'] = 'sign_mismatch'
-            final_reward = 0.01
-            debug['final_reward'] = final_reward
-            return final_reward, debug
 
         rc = Config.get_reward_config()
         t_score    = 1.0 / (1.0 + np.exp(-rc['t_stat']['slope'] * (abs_t - rc['t_stat']['threshold'])))
@@ -186,9 +157,19 @@ class MiningOrchestrator:
         debug['icir_score'] = icir_score
         debug['ic_score'] = ic_score
 
-        reward = (t_score ** rc['weight']['t_stat']) * (icir_score ** rc['weight']['icir']) * (ic_score ** rc['weight']['ic']) * 10.0
-        
-   
+        reward = (Config.REWARD_SOFT_FLOOR +
+                  (Config.REWARD_TOP - Config.REWARD_SOFT_FLOOR) *
+                  (t_score ** rc['weight']['t_stat']) *
+                  (icir_score ** rc['weight']['icir']) *
+                  (ic_score ** rc['weight']['ic']))
+
+        raw_ic = fm_result.rank_ic_mean
+        if np.sign(fm_result.t_stat) * np.sign(raw_ic) < 0 or \
+           np.sign(fm_result.t_stat) * np.sign(raw_icir) < 0:
+            reward *= Config.SIGN_MISMATCH_PENALTY
+            debug['sign_penalty'] = Config.SIGN_MISMATCH_PENALTY
+            debug['reason'] = 'sign_mismatch'
+
         if formula:
             eff_feats = self._compute_formula_effective_features(formula, used_features)
             if eff_feats <= 1:
@@ -215,7 +196,13 @@ class MiningOrchestrator:
                 reward *= sim_penalty
                 debug['sim_penalty'] = sim_penalty
 
-        final_reward = max(reward, 0.01)
+        if Config.USE_SUBPERIOD_ROBUST_REWARD:
+            robust_mult = 0.3 + 0.7 * robustness
+            reward *= robust_mult
+            debug['robustness'] = robustness
+            debug['robust_mult'] = robust_mult
+
+        final_reward = max(reward, Config.REWARD_SOFT_FLOOR)
         debug['final_reward'] = final_reward
         return final_reward, debug
 
@@ -223,6 +210,37 @@ class MiningOrchestrator:
     def _neutralize(pred: np.ndarray, ret: np.ndarray, dates: np.ndarray, amount: np.ndarray):
         from .neutralize import fwl_neutralize
         return fwl_neutralize(pred, ret, dates, np.zeros(len(pred)), amount)
+
+    def _subperiod_robustness(self, pred_all: np.ndarray, ds: Dict,
+                              fm_val: FMRegressionResult) -> float:
+        """跨子期方向一致性: 把 train 按日切 SUBPERIOD_ROBUST_SPLITS 段 + val 段,
+        统计"方向一致(t·IC>0)且 |t|>=1"的段占比. 段内显式排除 test 行, 无泄漏."""
+        d_all = ds['all'][2]
+        tr_dates = np.sort(np.unique(d_all[self.prep.tr_mask]))
+        chunks = np.array_split(tr_dates, Config.SUBPERIOD_ROBUST_SPLITS)
+        consistent, valid = 0, 0
+        for ch in chunks:
+            seg = self.prep.tr_mask & np.isin(d_all, ch)
+            assert (seg & self.prep.te_mask).sum() == 0, "子期段内不得包含 test 行"
+            dates_s = d_all[seg]
+            if np.unique(dates_s).size < 30:
+                continue
+            valid += 1
+            pp, pr = pred_all[seg], ds['all'][1][seg]
+            if Config.USE_RESIDUAL_NEUTRALIZATION:
+                pp, pr = self._neutralize(pp, pr, dates_s, ds['all'][4][seg])
+            try:
+                fm_s = self.fm_regressor.run(
+                    factor_values=pp, returns=pr,
+                    dates=dates_s, symbols=ds['all'][3][seg])
+            except Exception as e:
+                logger.warning(f"子期 FM 失败: {e}")
+                continue
+            if fm_s.t_stat * fm_s.rank_ic_mean > 0 and abs(fm_s.t_stat) >= 1.0:
+                consistent += 1
+        if fm_val.t_stat * fm_val.rank_ic_mean > 0 and abs(fm_val.t_stat) >= 1.0:
+            consistent += 1
+        return consistent / (valid + 1) if valid > 0 else 0.0
 
     def run(self, max_trials: int = 50, time_limit_min: int = 60):
         start = time.time()
@@ -271,7 +289,7 @@ class MiningOrchestrator:
                         logger.info(f"硬屏蔽 {f} (出现率{ratio:.0%})")
 
             if len(feats) < Config.MIN_FEATURES:
-                self.gfn_trainer.train_step(traj.log_pf, traj.log_pb, reward=0.01)
+                self.gfn_trainer.train_step(traj.log_pf, traj.log_pb, reward=Config.REWARD_HARD)
                 trial += 1
                 continue
 
@@ -281,7 +299,7 @@ class MiningOrchestrator:
             engine = PySRMiningEngine()
             pysr_result = engine.run(pd.DataFrame(X_tr, columns=feats), y_tr)
             if not pysr_result:
-                self.gfn_trainer.train_step(traj.log_pf, traj.log_pb, reward=0.01)
+                self.gfn_trainer.train_step(traj.log_pf, traj.log_pb, reward=Config.REWARD_HARD)
                 trial += 1
                 continue
             formula, complexity = pysr_result
@@ -289,7 +307,7 @@ class MiningOrchestrator:
             used_feats = [f for f in feats if f in formula]
             if len(used_feats) <= 1 and '(' not in formula:
                 logger.info(f"Trial #{trial} 单特征线性公式，跳过")
-                self.gfn_trainer.train_step(traj.log_pf, traj.log_pb, reward=0.01)
+                self.gfn_trainer.train_step(traj.log_pf, traj.log_pb, reward=Config.REWARD_HARD)
                 trial += 1
                 continue
 
@@ -308,7 +326,7 @@ class MiningOrchestrator:
 
             except Exception as e:
                 logger.warning(f"Trial #{trial} 执行失败: {e}")
-                self.gfn_trainer.train_step(traj.log_pf, traj.log_pb, reward=0.01)
+                self.gfn_trainer.train_step(traj.log_pf, traj.log_pb, reward=Config.REWARD_HARD)
                 trial += 1
                 continue
 
@@ -327,23 +345,29 @@ class MiningOrchestrator:
             fid = f"ACAD_{trial:03d}"
             self.fm_regressor.print_report(fm_result, factor_name=fid)
 
+            robustness = 1.0
+            if Config.USE_SUBPERIOD_ROBUST_REWARD:
+                robustness = self._subperiod_robustness(pred_all, ds, fm_result)
+                logger.info(f"{fid} robustness: {robustness:.3f} "
+                            f"({Config.SUBPERIOD_ROBUST_SPLITS} train段 + val)")
+
             if abs(fm_result.t_stat) < Config.TSTAT_THRESHOLD:
                 logger.warning(f"{fid} t-stat不达标 ({fm_result.t_stat:.3f} < {Config.TSTAT_THRESHOLD})")
-                self.gfn_trainer.train_step(traj.log_pf, traj.log_pb, reward=0.01)
+                self.gfn_trainer.train_step(traj.log_pf, traj.log_pb, reward=Config.REWARD_HARD)
                 trial += 1
                 continue
 
             if Config.USE_MONOTONICITY_GATE:
                 if not self._check_monotonicity(fm_result.quantile_returns, fm_result.t_stat):
                     logger.warning(f"{fid} 单调性不达标")
-                    self.gfn_trainer.train_step(traj.log_pf, traj.log_pb, reward=0.01)
+                    self.gfn_trainer.train_step(traj.log_pf, traj.log_pb, reward=Config.REWARD_HARD)
                     trial += 1
                     continue
 
             structure_fp = self._normalize_structure(formula, feats)
             if structure_fp in self.structural_fingerprints:
                 logger.warning(f"{fid} 结构重复 ({structure_fp[:60]}...)")
-                self.gfn_trainer.train_step(traj.log_pf, traj.log_pb, reward=0.005)
+                self.gfn_trainer.train_step(traj.log_pf, traj.log_pb, reward=Config.REWARD_HARD)
                 trial += 1
                 continue
 
@@ -353,7 +377,8 @@ class MiningOrchestrator:
                 logger.info(f"{fid} 特征无关结构重复 ({canon_sig[:50]}...)，施加软惩罚")
                 canon_dup_penalty = 0.3
 
-            reward, reward_debug = self._compute_reward(fm_result, feats, formula=formula)
+            reward, reward_debug = self._compute_reward(
+                fm_result, feats, formula=formula, robustness=robustness)
             if canon_dup_penalty < 1.0:
                 reward *= canon_dup_penalty
                 reward_debug['canon_dup_penalty'] = canon_dup_penalty
@@ -361,6 +386,9 @@ class MiningOrchestrator:
             diversity_part = f" div:{reward_debug.get('div_mult', 1.0):.2f}x" if 'div_mult' in reward_debug else ""
             sim_part = " SIM-PENALTY" if 'sim_penalty' in reward_debug else ""
             canon_part = f" canon:{reward_debug.get('canon_dup_penalty', 1.0):.2f}x" if reward_debug.get('canon_dup_penalty', 1.0) < 1.0 else ""
+            robust_part = ""
+            if Config.USE_SUBPERIOD_ROBUST_REWARD:
+                robust_part = f" robust:{reward_debug.get('robustness', 0.0):.3f}"
             if not Config.USE_DYNAMIC_DIVERSITY:
                 diversity_part = ""
                 sim_part = ""
@@ -368,7 +396,7 @@ class MiningOrchestrator:
                 f"{fid} | Reward:{reward:.3f} Cpx:{complexity} | "
                 f"t:{reward_debug['t_ctrl_score']:.3f} "
                 f"icir:{reward_debug['icir_score']:.3f} "
-                f"ic:{reward_debug['ic_score']:.3f}{diversity_part}{sim_part}{canon_part}"
+                f"ic:{reward_debug['ic_score']:.3f}{diversity_part}{sim_part}{canon_part}{robust_part}"
             )
 
             # Train GFlowNet on VAL set reward
@@ -395,13 +423,49 @@ class MiningOrchestrator:
                 symbols=test_symbols
             )
 
+            # 符号一致性: 存入 registry 前, 只拒混号 (三者同正/同负合法, 一致负向可做空)
+            t_te = fm_result_test.t_stat
+            ic_te = fm_result_test.rank_ic_mean
+            icir_te = fm_result_test.rank_icir
+            if not ((t_te * ic_te > 0) and (t_te * icir_te > 0)):
+                logger.warning(
+                    f"{fid} 符号不一致(混号) 拒绝入库: "
+                    f"t={t_te:.3f} IC={ic_te:.4f} ICIR={icir_te:.3f}")
+                trial += 1
+                continue
+
+            if abs(fm_result_test.t_stat) < Config.TSTAT_THRESHOLD:
+                logger.warning(
+                    f"{fid} test |t| 不达标 ({fm_result_test.t_stat:.3f} < "
+                    f"{Config.TSTAT_THRESHOLD}) 不入库")
+                trial += 1
+                continue
+
+            if abs(fm_result_test.rank_ic_mean) < Config.REGISTER_IC_MIN:
+                logger.warning(
+                    f"{fid} test |IC| 过小 ({fm_result_test.rank_ic_mean:.4f} < "
+                    f"{Config.REGISTER_IC_MIN}) 不入库")
+                trial += 1
+                continue
+
+            if abs(fm_result_test.rank_icir) < Config.REGISTER_ICIR_MIN:
+                logger.warning(
+                    f"{fid} test |ICIR| 过小 ({fm_result_test.rank_icir:.3f} < "
+                    f"{Config.REGISTER_ICIR_MIN}) 不入库")
+                trial += 1
+                continue
+
             self.fm_regressor.print_report(fm_result_test, factor_name=f"{fid} (Test集样本外)")
 
             fm_dict = fm_result_test.to_dict()
             fm_dict['formula'] = formula
             fm_dict['features'] = feats
             fm_dict['complexity'] = complexity
-            self.registry.register(fid, formula, fm_dict, feats)
+            rc = Config.get_reward_config()
+            strong_icir = abs(fm_result_test.rank_icir) >= rc['icir']['threshold']
+            strong_ic = abs(fm_result_test.rank_ic_mean) >= rc['ic']['threshold']
+            gate_status = 'STRONG' if (strong_icir and strong_ic) else 'WEAK'
+            self.registry.register(fid, formula, fm_dict, feats, gate_status=gate_status)
             self.structural_fingerprints.add(structure_fp)
             self.structural_signatures.add(canon_sig)
 

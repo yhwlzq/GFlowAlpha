@@ -1,0 +1,87 @@
+{
+  "config": {
+    "market": "zs500",
+    "train_months": 27,
+    "val_months": 12,
+    "test_months": 3,
+    "max_trials": 60,
+    "time_limit_min": 80,
+    "n_windows": 7
+  },
+  "windows": {
+    "2": {
+      "n_factors": 1,
+      "factors": [
+        {
+          "id": "ACAD_038",
+          "formula": "square(ma_cross_5d/(rsi_6+3.1089704))*0.046283945",
+          "features": [
+            "parkinson_vol_20d",
+            "rsi_6",
+            "ma_cross_5d",
+            "logpv_corr_5d",
+            "body_ratio"
+          ],
+          "test_FM_tstat": 3.0144,
+          "test_IC": 0.0259,
+          "test_ICIR": 0.2394
+        }
+      ]
+    },
+    "3": {
+      "n_factors": 3,
+      "factors": [
+        {
+          "id": "ACAD_025",
+          "formula": "square(ma_cross_5d*-0.0678238)",
+          "features": [
+            "max_ret_20d",
+            "vol_skew_ratio",
+            "volume_shock_5d",
+            "turnover_60d",
+            "ma_cross_5d"
+          ],
+          "test_FM_tstat": 2.3027,
+          "test_IC": 0.0173,
+          "test_ICIR": 0.1945
+        },
+        {
+          "id": "ACAD_030",
+          "formula": "square(rev_1d*0.10252437)",
+          "features": [
+            "rev_1d",
+            "ret_5d",
+            "kurt_20d",
+            "boll_width_20d",
+            "rev_60d"
+          ],
+          "test_FM_tstat": 2.7111,
+          "test_IC": 0.0174,
+          "test_ICIR": 0.1967
+        },
+        {
+          "id": "ACAD_045",
+          "formula": "square((rev_1d+sign(ret_10d))*0.115397684)",
+          "features": [
+            "vol_skew_ratio",
+            "ret_10d",
+            "min_ret_20d",
+            "rev_1d",
+            "turnover_60d"
+          ],
+          "test_FM_tstat": 3.6547,
+          "test_IC": 0.0426,
+          "test_ICIR": 0.4954
+        }
+      ]
+    }
+  },
+  "cross_window": {
+    "n_evals": 13,
+    "n_passed": 5,
+    "hit_rate": 0.38461538461538464,
+    "mean_tstat": 1.7984538461538462,
+    "mean_ic": 0.03744615384615385,
+    "mean_icir": 0.41733846153846155
+  }
+}

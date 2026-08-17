@@ -1,0 +1,20 @@
+{
+  "config": {
+    "market": "zs500",
+    "train_months": 27,
+    "val_months": 12,
+    "test_months": 3,
+    "max_trials": 80,
+    "time_limit_min": 100,
+    "n_windows": 7
+  },
+  "windows": {
+    "6": {
+      "n_factors": 0,
+      "factors": []
+    }
+  },
+  "cross_window": {
+    "n_evals": 0
+  }
+}

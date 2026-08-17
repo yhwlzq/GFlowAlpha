@@ -1,0 +1,6 @@
+src_window,fid,test_window,n_periods,FM_tstat,Rank_IC,ICIR,passed
+5,ACAD_000,6,59,1.6116,0.0077,0.0711,False
+5,ACAD_002,6,59,0.935,0.0453,0.4748,False
+5,ACAD_015,6,59,1.3649,0.0482,0.4887,False
+5,ACAD_026,6,59,0.935,0.0453,0.4748,False
+5,ACAD_044,6,59,1.3649,0.0482,0.4887,False

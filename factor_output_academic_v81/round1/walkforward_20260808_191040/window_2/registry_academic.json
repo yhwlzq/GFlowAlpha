@@ -1,0 +1,304 @@
+{
+  "factors": {
+    "ACAD_002": {
+      "formula": "square((vol_10d+rev_60d)+ret_1d)*0.008086086",
+      "metrics": {
+        "FM_coef": 0.007212,
+        "FM_se": 0.007687,
+        "FM_tstat": 0.9383,
+        "FM_pvalue": 0.351998,
+        "FM_n_periods": 59,
+        "FM_R2_avg": 0.0107,
+        "FM_coef_pos_ratio": 0.4576,
+        "FM_coef_sig_ratio": 0.3898,
+        "LS_spread": 0.000454,
+        "Rank_IC": 0.0154,
+        "ICIR": 0.1518,
+        "formula": "square((vol_10d+rev_60d)+ret_1d)*0.008086086",
+        "features": [
+          "ret_1d",
+          "rev_60d",
+          "gap",
+          "turnover_std_20d",
+          "vol_10d"
+        ],
+        "complexity": 8
+      },
+      "registered_at": "2026-08-08T19:18:29.325069",
+      "features": [
+        "ret_1d",
+        "rev_60d",
+        "gap",
+        "turnover_std_20d",
+        "vol_10d"
+      ]
+    },
+    "ACAD_003": {
+      "formula": "(bias_20d-sign(bias_20d))*-0.04034715",
+      "metrics": {
+        "FM_coef": 0.008866,
+        "FM_se": 0.00809,
+        "FM_tstat": 1.0959,
+        "FM_pvalue": 0.277655,
+        "FM_n_periods": 59,
+        "FM_R2_avg": 0.0094,
+        "FM_coef_pos_ratio": 0.5424,
+        "FM_coef_sig_ratio": 0.2712,
+        "LS_spread": 0.000651,
+        "Rank_IC": 0.0221,
+        "ICIR": 0.2159,
+        "formula": "(bias_20d-sign(bias_20d))*-0.04034715",
+        "features": [
+          "pv_corr_5d",
+          "turnover_skew_20d",
+          "volume_shock_5d",
+          "bias_20d",
+          "vol_skew_ratio"
+        ],
+        "complexity": 6
+      },
+      "registered_at": "2026-08-08T19:20:01.282098",
+      "features": [
+        "pv_corr_5d",
+        "turnover_skew_20d",
+        "volume_shock_5d",
+        "bias_20d",
+        "vol_skew_ratio"
+      ]
+    },
+    "ACAD_021": {
+      "formula": "square(rev_1d*0.09378346)",
+      "metrics": {
+        "FM_coef": 0.031487,
+        "FM_se": 0.017733,
+        "FM_tstat": 1.7756,
+        "FM_pvalue": 0.081044,
+        "FM_n_periods": 59,
+        "FM_R2_avg": 0.012,
+        "FM_coef_pos_ratio": 0.5424,
+        "FM_coef_sig_ratio": 0.4068,
+        "LS_spread": 0.000205,
+        "Rank_IC": 0.0033,
+        "ICIR": 0.0349,
+        "formula": "square(rev_1d*0.09378346)",
+        "features": [
+          "pv_corr_5d",
+          "volume_shock_5d",
+          "skew_20d",
+          "rev_1d",
+          "vol_skew_ratio"
+        ],
+        "complexity": 4
+      },
+      "registered_at": "2026-08-08T19:50:18.783340",
+      "features": [
+        "pv_corr_5d",
+        "volume_shock_5d",
+        "skew_20d",
+        "rev_1d",
+        "vol_skew_ratio"
+      ]
+    },
+    "ACAD_025": {
+      "formula": "vol_stability_20d*(price_accel*0.027635168)",
+      "metrics": {
+        "FM_coef": 0.002606,
+        "FM_se": 0.010268,
+        "FM_tstat": 0.2538,
+        "FM_pvalue": 0.80053,
+        "FM_n_periods": 59,
+        "FM_R2_avg": 0.0114,
+        "FM_coef_pos_ratio": 0.5085,
+        "FM_coef_sig_ratio": 0.3559,
+        "LS_spread": 0.000469,
+        "Rank_IC": 0.0084,
+        "ICIR": 0.0755,
+        "formula": "vol_stability_20d*(price_accel*0.027635168)",
+        "features": [
+          "gap",
+          "vol_stability_20d",
+          "vol_skew_ratio",
+          "price_accel",
+          "ret_3d"
+        ],
+        "complexity": 5
+      },
+      "registered_at": "2026-08-08T19:56:29.774656",
+      "features": [
+        "gap",
+        "vol_stability_20d",
+        "vol_skew_ratio",
+        "price_accel",
+        "ret_3d"
+      ]
+    },
+    "ACAD_030": {
+      "formula": "(vol_expansion_20d*(rsi_24-vol_expansion_20d))*-0.022287026",
+      "metrics": {
+        "FM_coef": -0.006557,
+        "FM_se": 0.006247,
+        "FM_tstat": -1.0496,
+        "FM_pvalue": 0.298271,
+        "FM_n_periods": 59,
+        "FM_R2_avg": 0.0065,
+        "FM_coef_pos_ratio": 0.4576,
+        "FM_coef_sig_ratio": 0.3051,
+        "LS_spread": -0.000928,
+        "Rank_IC": -0.0134,
+        "ICIR": -0.1503,
+        "formula": "(vol_expansion_20d*(rsi_24-vol_expansion_20d))*-0.022287026",
+        "features": [
+          "vol_expansion_20d",
+          "rsi_24",
+          "dist_52w_high",
+          "turnover_ma_ratio_5_60",
+          "vol_skew_ratio"
+        ],
+        "complexity": 7
+      },
+      "registered_at": "2026-08-08T20:04:00.432148",
+      "features": [
+        "vol_expansion_20d",
+        "rsi_24",
+        "dist_52w_high",
+        "turnover_ma_ratio_5_60",
+        "vol_skew_ratio"
+      ]
+    },
+    "ACAD_034": {
+      "formula": "gap*abs(gap*-0.006592312)",
+      "metrics": {
+        "FM_coef": 0.000449,
+        "FM_se": 0.016555,
+        "FM_tstat": 0.0271,
+        "FM_pvalue": 0.978466,
+        "FM_n_periods": 59,
+        "FM_R2_avg": 0.0158,
+        "FM_coef_pos_ratio": 0.5085,
+        "FM_coef_sig_ratio": 0.2881,
+        "LS_spread": 0.001596,
+        "Rank_IC": 0.0212,
+        "ICIR": 0.1727,
+        "formula": "gap*abs(gap*-0.006592312)",
+        "features": [
+          "rev_3d",
+          "min_ret_20d",
+          "vol_20d",
+          "gap",
+          "bias_5d"
+        ],
+        "complexity": 6
+      },
+      "registered_at": "2026-08-08T20:10:18.504991",
+      "features": [
+        "rev_3d",
+        "min_ret_20d",
+        "vol_20d",
+        "gap",
+        "bias_5d"
+      ]
+    },
+    "ACAD_038": {
+      "formula": "square(ma_cross_5d/(rsi_6+3.1089704))*0.046283945",
+      "metrics": {
+        "FM_coef": 0.094882,
+        "FM_se": 0.031476,
+        "FM_tstat": 3.0144,
+        "FM_pvalue": 0.003815,
+        "FM_n_periods": 59,
+        "FM_R2_avg": 0.0125,
+        "FM_coef_pos_ratio": 0.6271,
+        "FM_coef_sig_ratio": 0.3559,
+        "LS_spread": 0.000631,
+        "Rank_IC": 0.0259,
+        "ICIR": 0.2394,
+        "formula": "square(ma_cross_5d/(rsi_6+3.1089704))*0.046283945",
+        "features": [
+          "parkinson_vol_20d",
+          "rsi_6",
+          "ma_cross_5d",
+          "logpv_corr_5d",
+          "body_ratio"
+        ],
+        "complexity": 8
+      },
+      "registered_at": "2026-08-08T20:18:20.793474",
+      "features": [
+        "parkinson_vol_20d",
+        "rsi_6",
+        "ma_cross_5d",
+        "logpv_corr_5d",
+        "body_ratio"
+      ]
+    },
+    "ACAD_042": {
+      "formula": "square((ret_1d-pv_corr_20d)*0.10211986)",
+      "metrics": {
+        "FM_coef": 0.015419,
+        "FM_se": 0.009864,
+        "FM_tstat": 1.5632,
+        "FM_pvalue": 0.12345,
+        "FM_n_periods": 59,
+        "FM_R2_avg": 0.0087,
+        "FM_coef_pos_ratio": 0.5763,
+        "FM_coef_sig_ratio": 0.3559,
+        "LS_spread": 0.000377,
+        "Rank_IC": 0.0155,
+        "ICIR": 0.1791,
+        "formula": "square((ret_1d-pv_corr_20d)*0.10211986)",
+        "features": [
+          "rev_1d",
+          "pv_corr_20d",
+          "ret_1d",
+          "turnover_decay_20d",
+          "turnover_skew_20d"
+        ],
+        "complexity": 6
+      },
+      "registered_at": "2026-08-08T20:24:33.591591",
+      "features": [
+        "rev_1d",
+        "pv_corr_20d",
+        "ret_1d",
+        "turnover_decay_20d",
+        "turnover_skew_20d"
+      ]
+    },
+    "ACAD_048": {
+      "formula": "square((sign(ma_cross_20d)+rev_1d)*0.12836628)",
+      "metrics": {
+        "FM_coef": 0.011585,
+        "FM_se": 0.009639,
+        "FM_tstat": 1.2019,
+        "FM_pvalue": 0.234282,
+        "FM_n_periods": 59,
+        "FM_R2_avg": 0.0099,
+        "FM_coef_pos_ratio": 0.5593,
+        "FM_coef_sig_ratio": 0.2881,
+        "LS_spread": 0.000733,
+        "Rank_IC": 0.0091,
+        "ICIR": 0.0905,
+        "formula": "square((sign(ma_cross_20d)+rev_1d)*0.12836628)",
+        "features": [
+          "ma_cross_20d",
+          "turnover_ma_ratio_5_60",
+          "rev_1d",
+          "dist_52w_high",
+          "min_ret_20d"
+        ],
+        "complexity": 7
+      },
+      "registered_at": "2026-08-08T20:34:23.783416",
+      "features": [
+        "ma_cross_20d",
+        "turnover_ma_ratio_5_60",
+        "rev_1d",
+        "dist_52w_high",
+        "min_ret_20d"
+      ]
+    }
+  },
+  "meta": {
+    "version": "9.1_ICIR_Prior"
+  }
+}

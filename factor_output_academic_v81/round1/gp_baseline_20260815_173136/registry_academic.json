@@ -1,0 +1,322 @@
+{
+  "factors": {
+    "GP_000": {
+      "formula": "sub(sub(abs(log1p(log1p(log1p(log1p(div(X86, X70)))))), add(add(X38, X22), X35)), X73)",
+      "gate_status": null,
+      "metrics": {
+        "FM_coef": -3.7e-05,
+        "FM_se": 3.6e-05,
+        "FM_tstat": -1.0506,
+        "FM_pvalue": 0.29451,
+        "FM_n_periods": 241,
+        "FM_R2_avg": 0.0063,
+        "FM_coef_pos_ratio": 0.4938,
+        "FM_coef_sig_ratio": 0.2573,
+        "LS_spread": -0.000348,
+        "Rank_IC": 0.0146,
+        "ICIR": 0.169,
+        "formula": "sub(sub(abs(log1p(log1p(log1p(log1p(div(X86, X70)))))), add(add(X38, X22), X35)), X73)",
+        "fitness": 0.392240250450433,
+        "length": 16
+      },
+      "registered_at": "2026-08-15T17:46:42.312619"
+    },
+    "GP_001": {
+      "formula": "sub(sub(abs(log1p(log1p(div(X86, X70)))), add(add(X38, X22), X35)), X73)",
+      "gate_status": null,
+      "metrics": {
+        "FM_coef": -5e-05,
+        "FM_se": 3.9e-05,
+        "FM_tstat": -1.2937,
+        "FM_pvalue": 0.197003,
+        "FM_n_periods": 241,
+        "FM_R2_avg": 0.0065,
+        "FM_coef_pos_ratio": 0.4938,
+        "FM_coef_sig_ratio": 0.2573,
+        "LS_spread": -0.000462,
+        "Rank_IC": 0.0145,
+        "ICIR": 0.1641,
+        "formula": "sub(sub(abs(log1p(log1p(div(X86, X70)))), add(add(X38, X22), X35)), X73)",
+        "fitness": 0.391340070238592,
+        "length": 14
+      },
+      "registered_at": "2026-08-15T17:46:42.690662"
+    },
+    "GP_002": {
+      "formula": "sub(abs(log1p(log1p(log1p(log1p(div(X86, X70)))))), add(add(X38, X22), X35))",
+      "gate_status": null,
+      "metrics": {
+        "FM_coef": -4.1e-05,
+        "FM_se": 3.6e-05,
+        "FM_tstat": -1.117,
+        "FM_pvalue": 0.265094,
+        "FM_n_periods": 241,
+        "FM_R2_avg": 0.0063,
+        "FM_coef_pos_ratio": 0.4813,
+        "FM_coef_sig_ratio": 0.2448,
+        "LS_spread": -0.000227,
+        "Rank_IC": 0.0154,
+        "ICIR": 0.1759,
+        "formula": "sub(abs(log1p(log1p(log1p(log1p(div(X86, X70)))))), add(add(X38, X22), X35))",
+        "fitness": 0.39108844091968187,
+        "length": 14
+      },
+      "registered_at": "2026-08-15T17:46:43.065099"
+    },
+    "GP_003": {
+      "formula": "sub(abs(log1p(log1p(X86))), add(add(X38, X22), X35))",
+      "gate_status": null,
+      "metrics": {
+        "FM_coef": 5e-06,
+        "FM_se": 4.8e-05,
+        "FM_tstat": 0.1071,
+        "FM_pvalue": 0.914793,
+        "FM_n_periods": 241,
+        "FM_R2_avg": 0.0073,
+        "FM_coef_pos_ratio": 0.5021,
+        "FM_coef_sig_ratio": 0.2656,
+        "LS_spread": -4.7e-05,
+        "Rank_IC": 0.0238,
+        "ICIR": 0.2466,
+        "formula": "sub(abs(log1p(log1p(X86))), add(add(X38, X22), X35))",
+        "fitness": 0.3904002089280894,
+        "length": 10
+      },
+      "registered_at": "2026-08-15T17:46:43.443034"
+    },
+    "GP_004": {
+      "formula": "sub(sub(abs(log1p(log1p(div(X86, X70)))), add(add(X38, X22), X35)), X73)",
+      "gate_status": null,
+      "metrics": {
+        "FM_coef": -5e-05,
+        "FM_se": 3.9e-05,
+        "FM_tstat": -1.2937,
+        "FM_pvalue": 0.197003,
+        "FM_n_periods": 241,
+        "FM_R2_avg": 0.0065,
+        "FM_coef_pos_ratio": 0.4938,
+        "FM_coef_sig_ratio": 0.2573,
+        "LS_spread": -0.000462,
+        "Rank_IC": 0.0145,
+        "ICIR": 0.1641,
+        "formula": "sub(sub(abs(log1p(log1p(div(X86, X70)))), add(add(X38, X22), X35)), X73)",
+        "fitness": 0.3901423859389293,
+        "length": 14
+      },
+      "registered_at": "2026-08-15T17:46:43.808077"
+    },
+    "GP_005": {
+      "formula": "sub(sub(abs(log1p(abs(log1p(log1p(log1p(div(X86, X70))))))), add(add(X38, X22), X35)), X73)",
+      "gate_status": null,
+      "metrics": {
+        "FM_coef": -2e-06,
+        "FM_se": 8.2e-05,
+        "FM_tstat": -0.0279,
+        "FM_pvalue": 0.977773,
+        "FM_n_periods": 241,
+        "FM_R2_avg": 0.011,
+        "FM_coef_pos_ratio": 0.5062,
+        "FM_coef_sig_ratio": 0.3734,
+        "LS_spread": -0.000385,
+        "Rank_IC": 0.0165,
+        "ICIR": 0.1622,
+        "formula": "sub(sub(abs(log1p(abs(log1p(log1p(log1p(div(X86, X70))))))), add(add(X38, X22), X35)), X73)",
+        "fitness": 0.38931386914695243,
+        "length": 17
+      },
+      "registered_at": "2026-08-15T17:46:44.168934"
+    },
+    "GP_006": {
+      "formula": "sub(sub(abs(log1p(abs(log1p(div(X86, X70))))), add(add(X38, X22), X35)), X73)",
+      "gate_status": null,
+      "metrics": {
+        "FM_coef": -1.6e-05,
+        "FM_se": 8.6e-05,
+        "FM_tstat": -0.1884,
+        "FM_pvalue": 0.850729,
+        "FM_n_periods": 241,
+        "FM_R2_avg": 0.0112,
+        "FM_coef_pos_ratio": 0.5104,
+        "FM_coef_sig_ratio": 0.3776,
+        "LS_spread": -0.000401,
+        "Rank_IC": 0.0162,
+        "ICIR": 0.158,
+        "formula": "sub(sub(abs(log1p(abs(log1p(div(X86, X70))))), add(add(X38, X22), X35)), X73)",
+        "fitness": 0.3887527021117344,
+        "length": 15
+      },
+      "registered_at": "2026-08-15T17:46:44.540014"
+    },
+    "GP_007": {
+      "formula": "sub(sub(abs(sub(sub(abs(log1p(log1p(div(X86, X70)))), add(add(X38, X22), X35)), X73)), add(add(X38, X22), X35)), X73)",
+      "gate_status": null,
+      "metrics": {
+        "FM_coef": -1.1e-05,
+        "FM_se": 3.5e-05,
+        "FM_tstat": -0.3256,
+        "FM_pvalue": 0.744989,
+        "FM_n_periods": 241,
+        "FM_R2_avg": 0.0053,
+        "FM_coef_pos_ratio": 0.527,
+        "FM_coef_sig_ratio": 0.2116,
+        "LS_spread": -1.4e-05,
+        "Rank_IC": 0.0209,
+        "ICIR": 0.2463,
+        "formula": "sub(sub(abs(sub(sub(abs(log1p(log1p(div(X86, X70)))), add(add(X38, X22), X35)), X73)), add(add(X38, X22), X35)), X73)",
+        "fitness": 0.38695921408523126,
+        "length": 23
+      },
+      "registered_at": "2026-08-15T17:46:44.901895"
+    },
+    "GP_008": {
+      "formula": "sub(sub(abs(log1p(log1p(div(X86, X70)))), add(add(X38, X22), X35)), X73)",
+      "gate_status": null,
+      "metrics": {
+        "FM_coef": -5e-05,
+        "FM_se": 3.9e-05,
+        "FM_tstat": -1.2937,
+        "FM_pvalue": 0.197003,
+        "FM_n_periods": 241,
+        "FM_R2_avg": 0.0065,
+        "FM_coef_pos_ratio": 0.4938,
+        "FM_coef_sig_ratio": 0.2573,
+        "LS_spread": -0.000462,
+        "Rank_IC": 0.0145,
+        "ICIR": 0.1641,
+        "formula": "sub(sub(abs(log1p(log1p(div(X86, X70)))), add(add(X38, X22), X35)), X73)",
+        "fitness": 0.386908326398097,
+        "length": 14
+      },
+      "registered_at": "2026-08-15T17:46:45.274094"
+    },
+    "GP_009": {
+      "formula": "sub(sub(abs(log1p(abs(square(log1p(log1p(div(X86, X70))))))), add(add(X38, X22), X35)), X73)",
+      "gate_status": null,
+      "metrics": {
+        "FM_coef": -4.3e-05,
+        "FM_se": 6.1e-05,
+        "FM_tstat": -0.6983,
+        "FM_pvalue": 0.485667,
+        "FM_n_periods": 241,
+        "FM_R2_avg": 0.0083,
+        "FM_coef_pos_ratio": 0.5062,
+        "FM_coef_sig_ratio": 0.3154,
+        "LS_spread": -0.000595,
+        "Rank_IC": 0.0163,
+        "ICIR": 0.1777,
+        "formula": "sub(sub(abs(log1p(abs(square(log1p(log1p(div(X86, X70))))))), add(add(X38, X22), X35)), X73)",
+        "fitness": 0.3861337367098808,
+        "length": 17
+      },
+      "registered_at": "2026-08-15T17:46:45.648581"
+    },
+    "GP_010": {
+      "formula": "sub(sub(abs(log1p(abs(square(log1p(log1p(log1p(div(X86, X70)))))))), add(add(X38, X22), X35)), X73)",
+      "gate_status": null,
+      "metrics": {
+        "FM_coef": -3.3e-05,
+        "FM_se": 5.8e-05,
+        "FM_tstat": -0.5615,
+        "FM_pvalue": 0.575005,
+        "FM_n_periods": 241,
+        "FM_R2_avg": 0.0081,
+        "FM_coef_pos_ratio": 0.527,
+        "FM_coef_sig_ratio": 0.3112,
+        "LS_spread": -0.000498,
+        "Rank_IC": 0.0164,
+        "ICIR": 0.1823,
+        "formula": "sub(sub(abs(log1p(abs(square(log1p(log1p(log1p(div(X86, X70)))))))), add(add(X38, X22), X35)), X73)",
+        "fitness": 0.3857583142755572,
+        "length": 18
+      },
+      "registered_at": "2026-08-15T17:46:46.017109"
+    },
+    "GP_011": {
+      "formula": "sub(sub(log1p(abs(square(log1p(log1p(div(X86, X70)))))), add(add(X38, X22), X35)), X73)",
+      "gate_status": null,
+      "metrics": {
+        "FM_coef": -4.3e-05,
+        "FM_se": 6.1e-05,
+        "FM_tstat": -0.6983,
+        "FM_pvalue": 0.485667,
+        "FM_n_periods": 241,
+        "FM_R2_avg": 0.0083,
+        "FM_coef_pos_ratio": 0.5062,
+        "FM_coef_sig_ratio": 0.3154,
+        "LS_spread": -0.000595,
+        "Rank_IC": 0.0163,
+        "ICIR": 0.1777,
+        "formula": "sub(sub(log1p(abs(square(log1p(log1p(div(X86, X70)))))), add(add(X38, X22), X35)), X73)",
+        "fitness": 0.3857480771700339,
+        "length": 16
+      },
+      "registered_at": "2026-08-15T17:46:46.385609"
+    },
+    "GP_012": {
+      "formula": "sub(sub(abs(log1p(log1p(div(X86, X70)))), add(add(X38, X22), X35)), X73)",
+      "gate_status": null,
+      "metrics": {
+        "FM_coef": -5e-05,
+        "FM_se": 3.9e-05,
+        "FM_tstat": -1.2937,
+        "FM_pvalue": 0.197003,
+        "FM_n_periods": 241,
+        "FM_R2_avg": 0.0065,
+        "FM_coef_pos_ratio": 0.4938,
+        "FM_coef_sig_ratio": 0.2573,
+        "LS_spread": -0.000462,
+        "Rank_IC": 0.0145,
+        "ICIR": 0.1641,
+        "formula": "sub(sub(abs(log1p(log1p(div(X86, X70)))), add(add(X38, X22), X35)), X73)",
+        "fitness": 0.38536679969402027,
+        "length": 14
+      },
+      "registered_at": "2026-08-15T17:46:46.747457"
+    },
+    "GP_013": {
+      "formula": "sub(sub(abs(log1p(abs(square(log1p(log1p(div(X86, X70))))))), add(add(X38, X22), X35)), X73)",
+      "gate_status": null,
+      "metrics": {
+        "FM_coef": -4.3e-05,
+        "FM_se": 6.1e-05,
+        "FM_tstat": -0.6983,
+        "FM_pvalue": 0.485667,
+        "FM_n_periods": 241,
+        "FM_R2_avg": 0.0083,
+        "FM_coef_pos_ratio": 0.5062,
+        "FM_coef_sig_ratio": 0.3154,
+        "LS_spread": -0.000595,
+        "Rank_IC": 0.0163,
+        "ICIR": 0.1777,
+        "formula": "sub(sub(abs(log1p(abs(square(log1p(log1p(div(X86, X70))))))), add(add(X38, X22), X35)), X73)",
+        "fitness": 0.38425779713372943,
+        "length": 17
+      },
+      "registered_at": "2026-08-15T17:46:47.104277"
+    },
+    "GP_014": {
+      "formula": "sub(sub(abs(log1p(log1p(div(X86, X70)))), add(add(X38, X22), X35)), X73)",
+      "gate_status": null,
+      "metrics": {
+        "FM_coef": -5e-05,
+        "FM_se": 3.9e-05,
+        "FM_tstat": -1.2937,
+        "FM_pvalue": 0.197003,
+        "FM_n_periods": 241,
+        "FM_R2_avg": 0.0065,
+        "FM_coef_pos_ratio": 0.4938,
+        "FM_coef_sig_ratio": 0.2573,
+        "LS_spread": -0.000462,
+        "Rank_IC": 0.0145,
+        "ICIR": 0.1641,
+        "formula": "sub(sub(abs(log1p(log1p(div(X86, X70)))), add(add(X38, X22), X35)), X73)",
+        "fitness": 0.38425261141527506,
+        "length": 14
+      },
+      "registered_at": "2026-08-15T17:46:47.471312"
+    }
+  },
+  "meta": {
+    "version": "GP_baseline_gplearn"
+  }
+}

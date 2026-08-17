@@ -2,12 +2,13 @@ import logging
 import os
 import numpy as np
 import pandas as pd
-from pathlib import Path
+
+from alpha.config import REPO_ROOT
 
 logger = logging.getLogger(__name__)
 
 class CSI500Loader:
-    def __init__(self, path: str = Path(__file__).parent.parent / "CSI500_4Years_2022-06-30_to_2026-06-29.csv",
+    def __init__(self, path: str = os.path.join(REPO_ROOT, "data", "csi500_daily_2021-06-30_to_2026-06-30.parquet"),
                  min_bars: int = 252, winsor_pct: tuple = (0.01, 0.99)):
         self.path = str(path)
         self.min_bars = min_bars
@@ -75,6 +76,8 @@ class CSI500Loader:
         for col in ["open", "high", "low", "close", "volume", "amount", "turn", "pctChg"]:
             if col in df.columns:
                 df[col] = df[col].astype(np.float64)
+        if "pctChg" in df.columns:
+            df["ret"] = df["pctChg"] / 100.0
         logger.info(
             f"清洗完成: {len(df):,} 行, {df['symbol'].nunique()} 只股票, "
             f"{df['date'].nunique()} 个交易日"

@@ -8,9 +8,9 @@ logger = logging.getLogger(__name__)
 
 
 class WalkForwardSplitter:
-    """18:6:3 月度滚动 walk-forward 分割器.
+    """27:12:3 月度滚动 walk-forward 分割器.
 
-    每个窗口: train = 18 月, val = 6 月, test = 3 月 (季度, 生产调仓周期).
+    每个窗口: train = 27 月, val = 12 月, test = 3 月 (季度, 生产调仓周期).
     test 窗以 3 月为步长不重叠滚动. 边界施加 purge(1日) + embargo(2交易日)
     防止 HORIZON=1 的标签窗口泄漏到相邻集.
     """
@@ -26,6 +26,7 @@ class WalkForwardSplitter:
         self.unique_days = np.sort(np.unique(self.dates))
         self._month_off = self._month_offset(self.unique_days)
         self.min_test_days = 30   # FM 回归要求至少 30 个截面期, 残缺 test 窗直接丢弃
+        self._windows_cache = None
 
     @staticmethod
     def _month_offset(days: np.ndarray) -> np.ndarray:
@@ -34,6 +35,8 @@ class WalkForwardSplitter:
 
     def windows(self) -> Optional[Dict[str, np.ndarray]]:
         """返回 {window_idx: {'train': day_mask, 'val': day_mask, 'test': day_mask}}. 按天数掩码."""
+        if self._windows_cache is not None:
+            return self._windows_cache
         n_days = len(self.unique_days)
         last_month = int(self._month_off[-1])
         wm = self.train_months + self.val_months + self.test_months
@@ -65,7 +68,8 @@ class WalkForwardSplitter:
                 'n_test': int(test_day.sum()),
             }
             i += 1
-        return windows or None
+        self._windows_cache = windows or None
+        return self._windows_cache
 
     def _purge_embargo(self, tr_d: np.ndarray, va_d: np.ndarray, te_d: np.ndarray):
         """在 train|val 与 val|test 边界施加 purge + embargo 掩码 (按交易日)."""

@@ -11,7 +11,7 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 VENV_PY="$REPO_ROOT/.venv/bin/python3"
-DATA="${DATA:-$REPO_ROOT/data/csi500_daily_2020-07-20_to_2026-07-19.parquet}"
+DATA="${DATA:-$REPO_ROOT/data/csi500_daily_2020-06-30_to_2026-06-30.parquet}"
 TOOL="${1:-single_factor}"; shift || true
 
 cd "$REPO_ROOT"

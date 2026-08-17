@@ -1,0 +1,2 @@
+src_window,fid,test_window,n_periods,FM_tstat,Rank_IC,ICIR,passed
+6,ACAD_006,7,59,0.3876,0.0178,0.1741,False

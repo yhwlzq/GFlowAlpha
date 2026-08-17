@@ -1,0 +1,73 @@
+{
+  "config": {
+    "market": "zs500",
+    "train_months": 27,
+    "val_months": 12,
+    "test_months": 3,
+    "max_trials": 60,
+    "time_limit_min": 80,
+    "n_windows": 7
+  },
+  "windows": {
+    "0": {
+      "n_factors": 1,
+      "factors": [
+        {
+          "id": "ACAD_029",
+          "formula": "square(square((pv_corr_10d+rev_3d)*-0.12840135))",
+          "features": [
+            "extreme_vol_20d",
+            "rev_3d",
+            "min_ret_20d",
+            "pv_corr_10d",
+            "price_accel"
+          ],
+          "test_FM_tstat": 3.6061,
+          "test_IC": 0.052,
+          "test_ICIR": 0.3727
+        }
+      ]
+    },
+    "1": {
+      "n_factors": 2,
+      "factors": [
+        {
+          "id": "ACAD_007",
+          "formula": "(gap*0.007501137)*abs(gap)",
+          "features": [
+            "price_accel",
+            "intraday_mom",
+            "vol_stability_20d",
+            "gap",
+            "rsi_6"
+          ],
+          "test_FM_tstat": 4.0922,
+          "test_IC": 0.0345,
+          "test_ICIR": 0.308
+        },
+        {
+          "id": "ACAD_016",
+          "formula": "square(rev_1d)*(rev_1d*-0.0015337985)",
+          "features": [
+            "vol_5d",
+            "rev_1d",
+            "vol_10d",
+            "smart_money_20d",
+            "boll_width_20d"
+          ],
+          "test_FM_tstat": 2.5154,
+          "test_IC": 0.0345,
+          "test_ICIR": 0.2882
+        }
+      ]
+    }
+  },
+  "cross_window": {
+    "n_evals": 16,
+    "n_passed": 5,
+    "hit_rate": 0.3125,
+    "mean_tstat": 1.5173562500000002,
+    "mean_ic": 0.02919375,
+    "mean_icir": 0.3368375
+  }
+}

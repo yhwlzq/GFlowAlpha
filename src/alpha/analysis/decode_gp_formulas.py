@@ -16,7 +16,6 @@ import sys
 import argparse
 
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-_LEGACY_DIR = os.path.join(_SCRIPT_DIR, '..', '..', '..', 'outputs', 'legacy')
 
 # ──────────────────────────────────────────────────────────
 #  75 个初始特征（按 feature_registry.py 构建顺序）
@@ -196,7 +195,7 @@ def _print_factors(factors: list, feature_map: list):
 def main():
     parser = argparse.ArgumentParser(description='解码 GP 公式中的 X{n} 为特征名')
     parser.add_argument('json', nargs='?',
-                        default=os.path.join(_LEGACY_DIR, 'gp_baseline_all_factors.json'),
+                        default=os.path.join(_SCRIPT_DIR, 'gp_baseline_all_factors.json'),
                         help='gp_baseline 结果 JSON 路径')
     parser.add_argument('--data', help='原始数据路径 (parquet/csv)，传入后自动运行 preprocessor 获得精确映射')
     args = parser.parse_args()
@@ -210,10 +209,11 @@ def main():
 
     if args.data:
         print("加载数据并运行 preprocessor 获取聚类后精确特征映射...")
+        sys.path.insert(0, _SCRIPT_DIR)
         from alpha.mining.preprocessor import DataPreprocessor
         from alpha.data.data_loader import CSI500Loader
         from alpha.config import set_global_seed
-        set_global_seed(42)
+        set_global_seed()
         loader = CSI500Loader(path=args.data)
         df_raw = loader.load()
         prep = DataPreprocessor()

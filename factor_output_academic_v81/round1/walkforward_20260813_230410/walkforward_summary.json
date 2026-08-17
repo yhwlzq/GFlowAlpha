@@ -1,0 +1,39 @@
+{
+  "config": {
+    "market": "zs500",
+    "train_months": 36,
+    "val_months": 12,
+    "test_months": 12,
+    "max_trials": 50,
+    "time_limit_min": 80,
+    "n_windows": 6
+  },
+  "windows": {
+    "4": {
+      "n_factors": 0,
+      "factors": []
+    },
+    "5": {
+      "n_factors": 1,
+      "factors": [
+        {
+          "id": "ACAD_028",
+          "formula": "((abs(ret_1d)+-1.941051)*0.02298414)*ret_1d",
+          "features": [
+            "ret_1d",
+            "liquidity_var",
+            "kurt_20d",
+            "vol_skew_ratio",
+            "vol_stability_20d"
+          ],
+          "test_FM_tstat": 5.9278,
+          "test_IC": 0.0481,
+          "test_ICIR": 0.3585
+        }
+      ]
+    }
+  },
+  "cross_window": {
+    "n_evals": 0
+  }
+}

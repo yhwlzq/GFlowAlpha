@@ -38,7 +38,7 @@ class PySRMiningEngine:
             binary_operators=self.bin_ops,
             unary_operators=self.un_ops, elementwise_loss="L2DistLoss()",
             parsimony=Config.PY_SR_PARSIMONY,
-            deterministic=True, parallelism='serial', random_state=42, procs=0,
+            deterministic=True, parallelism='serial', random_state=Config.PYSR_SEED, procs=0,
             batching=True, batch_size=10000, warmup_maxsize_by=2,
             timeout_in_seconds=600, verbosity=1)
         try:

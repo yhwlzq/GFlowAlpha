@@ -1,0 +1,5 @@
+﻿fid,formula,FM_t_stat,Rank_IC,ICIR,Sharpe,Ann_LS_Return,Avg_Monthly_Turnover,Max_Drawdown,Ann_Return,long_only
+ACAD_014,square(rev_1d*0.095998675),4.9595,0.0431,0.4713,3.379,0.6507,0.6915,0.0575,0.6507,False
+ACAD_019,(rev_3d*(rev_3d+amount_shock_5d))*0.004153046,4.3937,0.0437,0.4768,2.071,0.3494,0.7117,0.0898,0.3494,False
+ACAD_028,square(body_ratio*(ret_2d*0.06908071)),6.1069,0.0553,0.6842,2.313,0.3887,0.7438,0.0633,0.3887,False
+ACAD_042,square((pv_corr_20d-ret_1d)*0.09696386),4.0478,0.036,0.4464,2.09,0.2985,0.7475,0.0543,0.2985,False

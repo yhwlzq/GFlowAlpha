@@ -35,16 +35,14 @@ import numpy as np
 import pandas as pd
 from scipy.stats import spearmanr
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from alpha.config import REPO_ROOT, Config, set_global_seed
+from alpha.config import Config, set_global_seed
 from alpha.data.data_loader import CSI500Loader
 from alpha.mining.preprocessor import DataPreprocessor
 from alpha.mining.fm_regression import FamaMacBethRegressor, FMRegressionResult
 from alpha.mining.neutralize import fwl_neutralize
 from alpha.evaluation.backtester import AcademicBacktester
-
-_REPO_ROOT = REPO_ROOT
-_LEGACY_REGISTRY = os.path.join(_REPO_ROOT, 'outputs', 'legacy', 'root_factor_output_academic_v81', 'run_20260720_171219', 'registry_academic.json')
 
 logger = logging.getLogger(__name__)
 
@@ -150,6 +148,8 @@ def evaluate_feature(
     te_dates = prep.full_dates[te_mask]
     te_symbols = prep.full_symbols[te_mask]
     te_amount = prep.full_amount[te_mask]
+    te_open = prep.full_open[te_mask] if prep.full_open is not None else None
+    te_close = prep.full_close[te_mask] if prep.full_close is not None else None
 
     valid = np.isfinite(pred_te) & np.isfinite(te_ret)
     if valid.sum() < 500:
@@ -161,8 +161,12 @@ def evaluate_feature(
     te_dates = te_dates[valid]
     te_symbols = te_symbols[valid]
     te_amount = te_amount[valid]
+    if te_open is not None:
+        te_open = te_open[valid]
+        te_close = te_close[valid]
 
-    bt_result = bt.run(pred_te, te_ret, te_dates, te_symbols, fid)
+    bt_result = bt.run(pred_te, te_ret, te_dates, te_symbols, fid,
+                       open_prices=te_open, close_prices=te_close)
 
     fv, rv = fwl_neutralize(pred_te, te_ret, te_dates, te_symbols, te_amount)
     ok = np.isfinite(fv) & np.isfinite(rv)
@@ -212,12 +216,12 @@ def print_table(traditional: List[Dict], gfn: List[Dict]):
 
 def main():
     parser = argparse.ArgumentParser(description='传统 vs GFN-SR 因子对比评估')
-    parser.add_argument('--data', default=os.path.join(_REPO_ROOT, 'data', 'csi500_daily_2020-07-20_to_2026-07-19.parquet'), help='数据路径 (CSV/Parquet)')
-    parser.add_argument('--registry', type=str, default=_LEGACY_REGISTRY, help='注册表 JSON 路径 (与 --formula 互斥)')
+    parser.add_argument('--data', default='data/csi500_daily_2021-06-30_to_2026-06-30.parquet', help='数据路径 (CSV/Parquet)')
+    parser.add_argument('--registry', type=str, default="", help='注册表 JSON 路径 (与 --formula 互斥)')
     parser.add_argument('--id', type=str, help='注册表中的因子 ID (需配合 --registry)')
     parser.add_argument('--top-n', type=int, default=5, help='筛选单变量因子个数 (默认 5)')
     parser.add_argument('--output', type=str, default=None, help='输出目录')
-    parser.add_argument('--seed', type=int, default=42, help='随机种子')
+    parser.add_argument('--seed', type=int, default=Config.SEED, help='随机种子')
     parser.add_argument('--pool-size', type=int, default=999, help='特征聚类目标数')
     args = parser.parse_args()
 

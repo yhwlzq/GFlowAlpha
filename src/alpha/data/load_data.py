@@ -12,8 +12,6 @@ import os
 import numpy as np
 import pandas as pd
 from pathlib import Path
-from alpha.config import REPO_ROOT as _REPO_ROOT
-
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +25,7 @@ class CSI500Loader:
         df = loader.load()
     """
 
-    def __init__(self, path: str=Path(os.path.join(_REPO_ROOT, 'data', 'csi500_daily_2020-07-20_to_2026-07-19.parquet')), min_bars: int = 252, winsor_pct: tuple = (0.01, 0.99)):
+    def __init__(self, path: str = Path("data/csi500_daily_2021-06-30_to_2026-06-30.parquet"), min_bars: int = 252, winsor_pct: tuple = (0.01, 0.99)):
         self.path = path
         self.min_bars = min_bars
         self.winsor_pct = winsor_pct

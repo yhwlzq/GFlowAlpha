@@ -23,6 +23,7 @@ rcParams['axes.unicode_minus'] = False
 
 warnings.filterwarnings('ignore')
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from alpha.config import Config, set_global_seed
 from alpha.data.data_loader import CSI500Loader
 from alpha.mining.preprocessor import DataPreprocessor
@@ -53,7 +54,7 @@ class FactorComparator:
         self.prep: DataPreprocessor = None
 
     def run(self) -> Tuple[List[Dict], List[Dict], List[Dict], List[Dict]]:
-        set_global_seed(42)
+        set_global_seed()
 
         # ---- 1. Load data ----
         logger.info("📥 加载数据...")
@@ -76,13 +77,15 @@ class FactorComparator:
         te_dates = self.prep.full_dates[te_mask]
         te_symbols = self.prep.full_symbols[te_mask]
         te_amount = self.prep.full_amount[te_mask].astype(np.float64)
+        te_open = self.prep.full_open[te_mask] if self.prep.full_open is not None else None
+        te_close = self.prep.full_close[te_mask] if self.prep.full_close is not None else None
 
         logger.info(f"📅 测试集: {te_mask.sum():,} 样本, "
                     f"{pd.to_datetime(te_dates).nunique()} 个交易日")
 
         # ---- 4. Evaluate (raw + FWL size-neutralized) ----
-        trad_raw, trad_fwl = self._eval_traditional(te_ret, te_dates, te_symbols, te_amount)
-        gfn_raw, gfn_fwl = self._eval_gfn(te_ret, te_dates, te_symbols, te_amount)
+        trad_raw, trad_fwl = self._eval_traditional(te_ret, te_dates, te_symbols, te_amount, te_open, te_close)
+        gfn_raw, gfn_fwl = self._eval_gfn(te_ret, te_dates, te_symbols, te_amount, te_open, te_close)
 
         return trad_raw, trad_fwl, gfn_raw, gfn_fwl
 
@@ -90,8 +93,8 @@ class FactorComparator:
     #  传统因子: 逐一取标准化后的单因子列 → FM + 回测
     # ------------------------------------------------------------------
     def _eval_traditional(self, te_ret: np.ndarray, te_dates: np.ndarray,
-                          te_symbols: np.ndarray,
-                          te_amount: np.ndarray) -> Tuple[List[Dict], List[Dict]]:
+                          te_symbols: np.ndarray, te_amount: np.ndarray,
+                          open_prices: np.ndarray = None, close_prices: np.ndarray = None) -> Tuple[List[Dict], List[Dict]]:
         logger.info("\n" + "=" * 60 + "\n📊 评估传统基础因子\n" + "=" * 60)
 
         feat_names = list(self.prep.valid_features)
@@ -109,8 +112,8 @@ class FactorComparator:
         for col in tqdm(feat_names, desc="评估传统因子"):
             idx = feat2idx[col]
             fv = te_X[:, idx]
-            r_raw = self._eval_one(fv, te_ret, te_dates, te_symbols, col)
-            r_fwl = self._eval_one_fwl(fv, te_ret, te_dates, te_symbols, te_amount, col)
+            r_raw = self._eval_one(fv, te_ret, te_dates, te_symbols, col, open_prices, close_prices)
+            r_fwl = self._eval_one_fwl(fv, te_ret, te_dates, te_symbols, te_amount, col, open_prices, close_prices)
             if r_raw['FM_tstat'] != 0.0:
                 raw_results.append(r_raw)
                 fwl_results.append(r_fwl)
@@ -120,8 +123,8 @@ class FactorComparator:
     #  GFN-SR: 注册表公式 → prep.get_subset() 取标准化特征 → eval → FM+回测
     # ------------------------------------------------------------------
     def _eval_gfn(self, te_ret: np.ndarray, te_dates: np.ndarray,
-                  te_symbols: np.ndarray,
-                  te_amount: np.ndarray) -> Tuple[List[Dict], List[Dict]]:
+                  te_symbols: np.ndarray, te_amount: np.ndarray,
+                  open_prices: np.ndarray = None, close_prices: np.ndarray = None) -> Tuple[List[Dict], List[Dict]]:
         logger.info("\n" + "=" * 60 + "\n📊 评估 GFN-SR 生成因子\n" + "=" * 60)
 
         if not os.path.exists(self.registry_path):
@@ -168,8 +171,8 @@ class FactorComparator:
                 pred_all = np.where(np.isfinite(pred_all), pred_all, np.nan)
                 pred_te = pred_all[self.prep.te_mask]
 
-                r_raw = self._eval_one(pred_te, te_ret, te_dates, te_symbols, fid)
-                r_fwl = self._eval_one_fwl(pred_te, te_ret, te_dates, te_symbols, te_amount, fid)
+                r_raw = self._eval_one(pred_te, te_ret, te_dates, te_symbols, fid, open_prices, close_prices)
+                r_fwl = self._eval_one_fwl(pred_te, te_ret, te_dates, te_symbols, te_amount, fid, open_prices, close_prices)
                 for r in (r_raw, r_fwl):
                     r['formula'] = formula
                 if r_raw['FM_tstat'] != 0.0:
@@ -185,9 +188,11 @@ class FactorComparator:
     # ------------------------------------------------------------------
     def _eval_one(self, factor_vals: np.ndarray, ret: np.ndarray,
                   dates: np.ndarray, symbols: np.ndarray,
-                  name: str) -> Dict:
+                  name: str, open_prices: np.ndarray = None,
+                  close_prices: np.ndarray = None) -> Dict:
         fm_result = self.fm.run(factor_vals, ret, dates, symbols)
-        bt_result = self.bt.run(factor_vals, ret, dates, symbols, name)
+        bt_result = self.bt.run(factor_vals, ret, dates, symbols, name,
+                                open_prices=open_prices, close_prices=close_prices)
         return {
             'name': name,
             'FM_tstat': fm_result.t_stat,
@@ -202,16 +207,21 @@ class FactorComparator:
     # ------------------------------------------------------------------
     def _eval_one_fwl(self, factor_vals: np.ndarray, ret: np.ndarray,
                       dates: np.ndarray, symbols: np.ndarray,
-                      amount: np.ndarray, name: str) -> Dict:
+                      amount: np.ndarray, name: str,
+                      open_prices: np.ndarray = None,
+                      close_prices: np.ndarray = None) -> Dict:
         if amount is None or np.all(amount == 0):
-            return self._eval_one(factor_vals, ret, dates, symbols, name)
+            return self._eval_one(factor_vals, ret, dates, symbols, name,
+                                  open_prices, close_prices)
 
         ln_amt = np.log(np.maximum(amount, 1.0))
         df_n = pd.DataFrame({
             'date': pd.to_datetime(dates).normalize(),
             'pred': factor_vals, 'ret': ret, 'ln_amt': ln_amt,
-            'symbol': symbols
-        }).dropna()
+            'symbol': symbols,
+            'open': np.asarray(open_prices, dtype=np.float64) if open_prices is not None else np.nan,
+            'close': np.asarray(close_prices, dtype=np.float64) if close_prices is not None else np.nan,
+        }).dropna(subset=['date', 'symbol', 'pred', 'ret', 'ln_amt'])
 
         pure_pred = np.full(len(df_n), np.nan, dtype=np.float64)
         pure_ret = np.full(len(df_n), np.nan, dtype=np.float64)
@@ -233,9 +243,11 @@ class FactorComparator:
         valid = np.isfinite(pure_pred) & np.isfinite(pure_ret)
         fm = self.fm.run(pure_pred[valid], pure_ret[valid],
                          df_n['date'].values[valid], df_n['symbol'].values[valid])
+        o_p = df_n['open'].values[valid] if open_prices is not None else None
+        c_p = df_n['close'].values[valid] if close_prices is not None else None
         bt = self.bt.run(pure_pred[valid], pure_ret[valid],
                          df_n['date'].values[valid], df_n['symbol'].values[valid],
-                         f"{name}_fwl")
+                         f"{name}_fwl", open_prices=o_p, close_prices=c_p)
         return {
             'name': name,
             'FM_tstat': fm.t_stat,
@@ -401,7 +413,10 @@ def main(data_path: str, registry_path: str, output_root: str = None, debug: boo
                             len(trad_raw), len(gfn_raw))
     print('\n' + table)
 
-    output_dir = os.path.join(Config.OUTPUT_ROOT,
+    if output_root is None:
+        output_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(
+            os.path.abspath(data_path))))))
+    output_dir = os.path.join(output_root, 'factor_output_academic_v81',
                               f'comparison_{datetime.now().strftime("%Y%m%d_%H%M%S")}')
     os.makedirs(output_dir, exist_ok=True)
 
@@ -457,15 +472,18 @@ def main(data_path: str, registry_path: str, output_root: str = None, debug: boo
 
 
 if __name__ == "__main__":
-    from alpha.config import REPO_ROOT as _REPO_ROOT
+    SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+    AI_STUDY_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(SCRIPT_DIR))))
+    print(AI_STUDY_ROOT)
 
     import argparse
     parser = argparse.ArgumentParser(description="传统因子 vs GFN-SR 因子对比评估")
     parser.add_argument('--data', type=str,
-        default=os.path.join(_REPO_ROOT, 'data', 'csi500_daily_2020-07-20_to_2026-07-19.parquet'),
+        default=os.path.join(SCRIPT_DIR, 'CSI500_4Years_2022-06-30_to_2026-06-29.csv'),
         help='日频数据路径')
     parser.add_argument('--registry', type=str,
-        default=None,
+        default=os.path.join(AI_STUDY_ROOT,
+            'outputs', 'transform_pysr_primary_20260711_175448', 'registry_academic.json'),
         help='GFN-SR 注册表路径')
     parser.add_argument('--debug', action='store_true', help='快速验证模式')
     args = parser.parse_args()

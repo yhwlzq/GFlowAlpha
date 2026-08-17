@@ -1,0 +1,40 @@
+{
+  "factors": {
+    "ACAD_025": {
+      "formula": "(square(body_ratio)*0.02741862)*gap",
+      "metrics": {
+        "FM_coef": 0.026768,
+        "FM_se": 0.002971,
+        "FM_tstat": 9.0101,
+        "FM_pvalue": 0.0,
+        "FM_n_periods": 241,
+        "FM_R2_avg": 0.0115,
+        "FM_coef_pos_ratio": 0.7012,
+        "FM_coef_sig_ratio": 0.5602,
+        "LS_spread": 0.001642,
+        "Rank_IC": 0.0268,
+        "ICIR": 0.3091,
+        "formula": "(square(body_ratio)*0.02741862)*gap",
+        "features": [
+          "rsi_6",
+          "body_ratio",
+          "turnover_5d",
+          "gap",
+          "kurt_20d"
+        ],
+        "complexity": 6
+      },
+      "registered_at": "2026-08-11T14:14:28.310072",
+      "features": [
+        "rsi_6",
+        "body_ratio",
+        "turnover_5d",
+        "gap",
+        "kurt_20d"
+      ]
+    }
+  },
+  "meta": {
+    "version": "9.1_ICIR_Prior"
+  }
+}

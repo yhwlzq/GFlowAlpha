@@ -1,0 +1,238 @@
+{
+  "factors": {
+    "ACAD_001": {
+      "formula": "square(rev_1d*0.11646926)",
+      "metrics": {
+        "FM_coef": 0.014767,
+        "FM_se": 0.010819,
+        "FM_tstat": 1.3649,
+        "FM_pvalue": 0.177572,
+        "FM_n_periods": 59,
+        "FM_R2_avg": 0.0096,
+        "FM_coef_pos_ratio": 0.5763,
+        "FM_coef_sig_ratio": 0.3898,
+        "LS_spread": 0.001294,
+        "Rank_IC": 0.0482,
+        "ICIR": 0.4887,
+        "formula": "square(rev_1d*0.11646926)",
+        "features": [
+          "rev_1d",
+          "extreme_vol_20d",
+          "turnover_20d",
+          "liquidity_var",
+          "pv_divergence"
+        ],
+        "complexity": 4
+      },
+      "registered_at": "2026-08-08T14:36:56.304486",
+      "features": [
+        "rev_1d",
+        "extreme_vol_20d",
+        "turnover_20d",
+        "liquidity_var",
+        "pv_divergence"
+      ]
+    },
+    "ACAD_004": {
+      "formula": "(bias_5d-ret_5d)*0.05302505",
+      "metrics": {
+        "FM_coef": 0.010576,
+        "FM_se": 0.015215,
+        "FM_tstat": 0.6951,
+        "FM_pvalue": 0.489762,
+        "FM_n_periods": 59,
+        "FM_R2_avg": 0.0176,
+        "FM_coef_pos_ratio": 0.5254,
+        "FM_coef_sig_ratio": 0.5254,
+        "LS_spread": 0.001057,
+        "Rank_IC": 0.0034,
+        "ICIR": 0.0244,
+        "formula": "(bias_5d-ret_5d)*0.05302505",
+        "features": [
+          "upper_shadow",
+          "ret_5d",
+          "liquidity_var",
+          "volume_std_5d",
+          "bias_5d"
+        ],
+        "complexity": 5
+      },
+      "registered_at": "2026-08-08T14:43:10.474281",
+      "features": [
+        "upper_shadow",
+        "ret_5d",
+        "liquidity_var",
+        "volume_std_5d",
+        "bias_5d"
+      ]
+    },
+    "ACAD_018": {
+      "formula": "square(ret_1d*-0.11720639)",
+      "metrics": {
+        "FM_coef": 0.014582,
+        "FM_se": 0.010684,
+        "FM_tstat": 1.3649,
+        "FM_pvalue": 0.177571,
+        "FM_n_periods": 59,
+        "FM_R2_avg": 0.0096,
+        "FM_coef_pos_ratio": 0.5763,
+        "FM_coef_sig_ratio": 0.3898,
+        "LS_spread": 0.001294,
+        "Rank_IC": 0.0482,
+        "ICIR": 0.4887,
+        "formula": "square(ret_1d*-0.11720639)",
+        "features": [
+          "ma_cross_10d",
+          "pv_divergence",
+          "ret_60d",
+          "rsi_6",
+          "ret_1d"
+        ],
+        "complexity": 4
+      },
+      "registered_at": "2026-08-08T15:06:14.445565",
+      "features": [
+        "ma_cross_10d",
+        "pv_divergence",
+        "ret_60d",
+        "rsi_6",
+        "ret_1d"
+      ]
+    },
+    "ACAD_022": {
+      "formula": "-0.018751768*(upper_shadow*illiq_spread)",
+      "metrics": {
+        "FM_coef": 0.018262,
+        "FM_se": 0.015603,
+        "FM_tstat": 1.1704,
+        "FM_pvalue": 0.246637,
+        "FM_n_periods": 59,
+        "FM_R2_avg": 0.0081,
+        "FM_coef_pos_ratio": 0.5593,
+        "FM_coef_sig_ratio": 0.3051,
+        "LS_spread": 0.000796,
+        "Rank_IC": 0.0109,
+        "ICIR": 0.1423,
+        "formula": "-0.018751768*(upper_shadow*illiq_spread)",
+        "features": [
+          "kurt_20d",
+          "logpv_corr_20d",
+          "illiq_spread",
+          "smart_money_20d",
+          "upper_shadow"
+        ],
+        "complexity": 5
+      },
+      "registered_at": "2026-08-08T15:12:44.946625",
+      "features": [
+        "kurt_20d",
+        "logpv_corr_20d",
+        "illiq_spread",
+        "smart_money_20d",
+        "upper_shadow"
+      ]
+    },
+    "ACAD_025": {
+      "formula": "square(intraday_mom*0.1158249)",
+      "metrics": {
+        "FM_coef": 0.008662,
+        "FM_se": 0.010892,
+        "FM_tstat": 0.7953,
+        "FM_pvalue": 0.429698,
+        "FM_n_periods": 59,
+        "FM_R2_avg": 0.0098,
+        "FM_coef_pos_ratio": 0.5424,
+        "FM_coef_sig_ratio": 0.3559,
+        "LS_spread": 0.000982,
+        "Rank_IC": 0.0426,
+        "ICIR": 0.4123,
+        "formula": "square(intraday_mom*0.1158249)",
+        "features": [
+          "turnover_illuminated_20d",
+          "dist_52w_low",
+          "ret_2d",
+          "intraday_mom",
+          "parkinson_vol_20d"
+        ],
+        "complexity": 4
+      },
+      "registered_at": "2026-08-08T15:17:05.758474",
+      "features": [
+        "turnover_illuminated_20d",
+        "dist_52w_low",
+        "ret_2d",
+        "intraday_mom",
+        "parkinson_vol_20d"
+      ]
+    },
+    "ACAD_026": {
+      "formula": "(amount_shock_5d*0.021955363)*price_accel",
+      "metrics": {
+        "FM_coef": 0.02415,
+        "FM_se": 0.011818,
+        "FM_tstat": 2.0434,
+        "FM_pvalue": 0.045562,
+        "FM_n_periods": 59,
+        "FM_R2_avg": 0.0089,
+        "FM_coef_pos_ratio": 0.5593,
+        "FM_coef_sig_ratio": 0.3898,
+        "LS_spread": 0.002047,
+        "Rank_IC": 0.0254,
+        "ICIR": 0.252,
+        "formula": "(amount_shock_5d*0.021955363)*price_accel",
+        "features": [
+          "bias_10d",
+          "price_accel",
+          "turnover_20d",
+          "turnover_60d",
+          "amount_shock_5d"
+        ],
+        "complexity": 5
+      },
+      "registered_at": "2026-08-08T15:18:18.230688",
+      "features": [
+        "bias_10d",
+        "price_accel",
+        "turnover_20d",
+        "turnover_60d",
+        "amount_shock_5d"
+      ]
+    },
+    "ACAD_035": {
+      "formula": "body_ratio*square(ret_1d*0.11246163)",
+      "metrics": {
+        "FM_coef": 0.00459,
+        "FM_se": 0.004909,
+        "FM_tstat": 0.935,
+        "FM_pvalue": 0.35365,
+        "FM_n_periods": 59,
+        "FM_R2_avg": 0.006,
+        "FM_coef_pos_ratio": 0.5593,
+        "FM_coef_sig_ratio": 0.2373,
+        "LS_spread": -0.000114,
+        "Rank_IC": 0.0453,
+        "ICIR": 0.4748,
+        "formula": "body_ratio*square(ret_1d*0.11246163)",
+        "features": [
+          "ret_1d",
+          "amt_turn_corr_20d",
+          "vol_skew_ratio",
+          "body_ratio",
+          "vol_expansion_20d"
+        ],
+        "complexity": 6
+      },
+      "registered_at": "2026-08-08T15:32:08.942767",
+      "features": [
+        "ret_1d",
+        "amt_turn_corr_20d",
+        "vol_skew_ratio",
+        "body_ratio",
+        "vol_expansion_20d"
+      ]
+    }
+  },
+  "meta": {
+    "version": "9.1_ICIR_Prior"
+  }
+}

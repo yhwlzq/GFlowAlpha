@@ -33,6 +33,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats import spearmanr
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from alpha.config import Config, set_global_seed
 from alpha.data.data_loader import CSI500Loader
@@ -186,7 +187,7 @@ def state_subset(te_dates, date_states, state_key, state_value):
 # ============================================================
 
 def main():
-    set_global_seed(42)
+    set_global_seed()
 
     logger.info("=" * 70)
     logger.info("  多因子市场状态互补性验证")

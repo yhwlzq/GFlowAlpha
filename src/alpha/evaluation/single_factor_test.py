@@ -63,7 +63,7 @@ from alpha.mining.safe_ops import SafeOps
 from alpha.evaluation.backtester import AcademicBacktester
 
 _REPO_ROOT = REPO_ROOT
-_LEGACY_REGISTRY = os.path.join(_REPO_ROOT, 'outputs', 'legacy', 'root_factor_output_academic_v81', 'run_20260720_171219', 'registry_academic.json')
+_LEGACY_REGISTRY = os.path.join(_REPO_ROOT, 'factor_output_academic_v81', 'run_20260806_141546', 'registry_academic.json')
 
 logger = logging.getLogger(__name__)
 
@@ -133,6 +133,8 @@ def evaluate_one(
     te_dates = prep.full_dates[te_mask]
     te_symbols = prep.full_symbols[te_mask]
     te_amount = prep.full_amount[te_mask]
+    te_open = prep.full_open[te_mask] if prep.full_open is not None else None
+    te_close = prep.full_close[te_mask] if prep.full_close is not None else None
 
     valid = np.isfinite(pred_te) & np.isfinite(te_ret)
     if valid.sum() < 500:
@@ -144,9 +146,13 @@ def evaluate_one(
     te_dates = te_dates[valid]
     te_symbols = te_symbols[valid]
     te_amount = te_amount[valid]
+    if te_open is not None:
+        te_open = te_open[valid]
+        te_close = te_close[valid]
 
     # ── Backtester: always uses raw (un-neutralized) data ──
-    bt_result = bt.run(pred_te, te_ret, te_dates, te_symbols, fid)
+    bt_result = bt.run(pred_te, te_ret, te_dates, te_symbols, fid,
+                       open_prices=te_open, close_prices=te_close)
 
     # ── FM regression: FWL-neutralized by default (matches registry) ──
     if not skip_fwl:
@@ -206,25 +212,37 @@ def print_comparison_results(gross: List[Dict], net: List[Dict], cost_bps: float
 
 def print_results(results: List[Dict]):
     fwl_label = ' (FM: FWL 中性化, 回测: raw)' if results[0]['fwl_applied'] else ' (FM: raw, 回测: raw)'
-    print(f"\n{'=' * 110}")
-    print(f"  单因子回测评估报告{fwl_label}")
-    print(f"{'=' * 110}")
-    print(f"{'ID':<14} {'t-stat':>8} {'p-value':>10} {'Coef':>9} {'NW-SE':>8} "
-          f"{'Rank_IC':>8} {'ICIR':>7} {'L-S':>9} {'年化':>8} {'Sharpe':>7} {'Q1~Q5 月均收益':<20}")
-    print(f"{'-' * 110}")
+    strat = results[0]['bt']['long_only'] if results[0]['bt'] else False
+    strat_label = 'long-only' if strat else '多空 L-S'
+    print(f"\n{'=' * 130}")
+    print(f"  单因子回测评估报告{fwl_label} | 策略: {strat_label}")
+    print(f"{'=' * 130}")
+    header = (f"{'ID':<14} {'t-stat':>8} {'p-value':>10} {'Coef':>9} {'NW-SE':>8} "
+              f"{'Rank_IC':>8} {'ICIR':>7} {'L-S':>9} "
+              f"{'Ann':>8} {'Sharpe':>7} {'L-S Ann':>9} {'Turnover':>9} {'MaxDD':>8} "
+              f"{'Q1~Q5 月均收益':<20}")
+    print(header)
+    print(f"{'-' * 130}")
     for r in results:
         fm: FMRegressionResult = r['fm']
         bt = r['bt']
         ann = bt['annualized_return'] if bt else 0.0
         shp = bt['sharpe_ratio'] if bt else 0.0
+        ls_ann = bt['ls_annualized_return'] if bt else 0.0
+        turn = bt['avg_monthly_turnover'] if bt else 0.0
+        mdd = bt['max_drawdown'] if bt else 0.0
         q = bt['quantile_monthly_rets'] if bt else {}
         q_str = ' '.join(f"{q.get(f'Q{i+1}', 0)*100:.1f}%" for i in range(5))
         print(f"{r['fid']:<14} {fm.t_stat:>8.2f} {fmt_pval(fm.p_value):>10} "
               f"{fm.coefficient:>9.6f} {fm.std_error:>8.6f} "
               f"{fm.rank_ic_mean:>8.4f} {fm.rank_icir:>7.2f} "
               f"{fm.long_short_spread:>9.5f} "
-              f"{ann*100:>7.1f}% {shp:>6.2f}  {q_str}")
-    print(f"{'-' * 110}")
+              f"{ann*100:>7.1f}% {shp:>6.2f} {ls_ann*100:>8.1f}% "
+              f"{turn*100:>8.1f}% {mdd*100:>7.1f}%  {q_str}")
+    print(f"{'-' * 130}")
+    print(f"  说明: Ann/Sharpe 为 {'long-only top20% 组合' if strat else '多空 L-S'} 口径; "
+          f"L-S Ann 为多空年化参考; Turnover 为月均换手率; MaxDD 为最大回撤(净值口径)")
+    print()
 
 
 def plot_results(results: List[Dict], output_dir: str):
@@ -244,12 +262,18 @@ def plot_results(results: List[Dict], output_dir: str):
         bt = r['bt']
         fm: FMRegressionResult = r['fm']
         ax1 = axes[i, 0]
-        if bt and 'cumulative_ls' in bt and len(bt['cumulative_ls']) > 1:
-            cum = bt['cumulative_ls']
+        long_only = bool(bt and bt.get('long_only'))
+        cum_key = 'cumulative_long' if long_only else 'cumulative_ls'
+        if bt and cum_key in bt and len(bt[cum_key]) > 1:
+            cum = bt[cum_key]
             ax1.plot(cum, lw=1.5, color='#2E86AB')
             ax1.axhline(y=1.0, color='gray', ls='--', lw=0.6)
-            ax1.set_title(f"{r['fid']} 多空累计净值 | Sharpe={bt['sharpe_ratio']:.2f} "
-                          f"年化={bt['annualized_return']*100:.1f}%")
+            label = f"{r['fid']} {'long-only' if long_only else '多空'}累计净值 | Sharpe={bt['sharpe_ratio']:.2f} "
+            if long_only:
+                label += f"L-S年化={bt.get('ls_annualized_return', 0)*100:.1f}% MaxDD={bt.get('max_drawdown', 0)*100:.1f}%"
+            else:
+                label += f"年化={bt['annualized_return']*100:.1f}%"
+            ax1.set_title(label)
             ax1.set_ylabel('累计净值')
             ax1.grid(alpha=0.25)
         ax2 = axes[i, 1]
@@ -357,22 +381,28 @@ def print_benchmark_comparison(mined: List[Dict], benchmark: List[Dict]):
 
 def main():
     parser = argparse.ArgumentParser(description='单因子回测评估工具')
-    parser.add_argument('--data', default=os.path.join(_REPO_ROOT, 'data', 'csi500_daily_2020-07-20_to_2026-07-19.parquet'), help='数据路径 (CSV/Parquet)')
+    parser.add_argument('--data', default=os.path.join(_REPO_ROOT, 'data', 'csi500_daily_2021-06-30_to_2026-06-30.parquet'), help='数据路径 (CSV/Parquet)')
     parser.add_argument('--formula', type=str, help='因子公式, 如 "square(rev_1d*0.1158)"')
     parser.add_argument('--features', type=str, nargs='+', help='因子依赖的特征名列表')
     parser.add_argument('--registry', type=str, default=_LEGACY_REGISTRY, help='注册表 JSON 路径 (与 --formula 互斥)')
     parser.add_argument('--id', type=str, help='注册表中的因子 ID (需配合 --registry)')
     parser.add_argument('--no-fwl', action='store_true', help='跳过 FWL 市值中性化 (FM 使用 raw 数据)')
-    parser.add_argument('--cost-bps', type=float, default=15, help='月度双边交易成本(bps), 均摊至 long/short 两腿')
+    parser.add_argument('--long-only', action='store_true',
+                        help='策略: 仅做多 top20% (默认多空 L-S); 报告仍含 L-S 参考指标')
+    parser.add_argument('--cost-bps', type=float, default=30,
+                        help='单腿完整往返交易成本(bps, =单边×2); 默认 30 即单边 15bps')
     parser.add_argument('--compare-cost', action='store_true', help='对比模式: 同时输出 gross (cost=0) 与 net (cost=cost-bps) 结果')
     parser.add_argument('--plot', action='store_true', default=True, help='生成累计净值曲线 + 五分位柱状图')
     parser.add_argument('--output', type=str, default=None, help='输出目录 (默认自动创建)')
-    parser.add_argument('--seed', type=int, default=42, help='随机种子')
+    parser.add_argument('--seed', type=int, default=Config.SEED, help='随机种子')
     parser.add_argument('--pool-size', type=int, default=999,
                         help='特征聚类目标数 (默认 999 即跳过聚类)')
     parser.add_argument('--benchmark', action='store_true', default=True,
                         help='与传统因子基准对比: 跑全部传统因子回测, 按 Sharpe 排名对比')
+    parser.add_argument('--no-benchmark', action='store_true',
+                        help='关闭传统因子基准对比 (省时)')
     args = parser.parse_args()
+    args.benchmark = args.benchmark and not args.no_benchmark
 
     set_global_seed(args.seed)
     logging.basicConfig(
@@ -408,11 +438,11 @@ def main():
     cost_net = args.cost_bps if use_compare else args.cost_bps
 
     if use_compare:
-        bt_gross = AcademicBacktester(top_quantile=0.2, cost_bps=0.0)
-        bt_net = AcademicBacktester(top_quantile=0.2, cost_bps=cost_net)
+        bt_gross = AcademicBacktester(top_quantile=0.2, cost_bps=0.0, long_only=args.long_only)
+        bt_net = AcademicBacktester(top_quantile=0.2, cost_bps=cost_net, long_only=args.long_only)
         bt_pairs = [('GROSS', 0.0, bt_gross), (f'NET_{int(cost_net)}bps', cost_net, bt_net)]
     else:
-        bt = AcademicBacktester(top_quantile=0.2, cost_bps=cost_net)
+        bt = AcademicBacktester(top_quantile=0.2, cost_bps=cost_net, long_only=args.long_only)
         bt_pairs = [(f'cost_{int(cost_net)}bps' if cost_net > 0 else 'no_cost', cost_net, bt)]
 
     all_results = {label: [] for label, _, _ in bt_pairs}
@@ -453,12 +483,13 @@ def main():
         print_results(results)
 
     if args.benchmark:
-        bt_bench = AcademicBacktester(top_quantile=0.2, cost_bps=cost_net)
+        bt_bench = AcademicBacktester(top_quantile=0.2, cost_bps=cost_net, long_only=args.long_only)
         benchmark_results = run_benchmark(prep, fm, bt_bench, skip_fwl=args.no_fwl)
         print_benchmark_comparison(results, benchmark_results)
         all_results['benchmark'] = benchmark_results
 
-    output_dir = args.output or f"single_factor_eval_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    output_dir = args.output or os.path.join(
+        Config.OUTPUT_DIR, f"single_factor_eval_{datetime.now().strftime('%Y%m%d_%H%M%S')}")
     os.makedirs(output_dir, exist_ok=True)
 
     def serialize(v):
@@ -492,6 +523,29 @@ def main():
         with open(json_path, 'w', encoding='utf-8') as f:
             json.dump(out_data, f, indent=2, ensure_ascii=False)
         logger.info(f"结果保存至: {json_path}")
+
+    # ── 汇总 CSV: 每因子一行 7 项核心指标 ──
+    if results:
+        summary_rows = []
+        for r in results:
+            fm: FMRegressionResult = r['fm']
+            bt = r['bt']
+            summary_rows.append({
+                'fid': r['fid'],
+                'formula': r['formula'],
+                'FM_t_stat': round(fm.t_stat, 4),
+                'Rank_IC': round(fm.rank_ic_mean, 4),
+                'ICIR': round(fm.rank_icir, 4),
+                'Sharpe': round(bt['sharpe_ratio'], 3) if bt else 0.0,
+                'Ann_LS_Return': round(bt.get('ls_daily_annualized', bt['annualized_return']), 4) if bt else 0.0,
+                'Avg_Monthly_Turnover': round(bt['avg_monthly_turnover'], 4) if bt else 0.0,
+                'Max_Drawdown': round(abs(bt['max_drawdown']), 4) if bt else 0.0,
+                'Ann_Return': round(bt['annualized_return'], 4) if bt else 0.0,
+                'long_only': bool(bt and bt.get('long_only')),
+            })
+        summary_path = os.path.join(output_dir, 'factor_summary.csv')
+        pd.DataFrame(summary_rows).to_csv(summary_path, index=False, encoding='utf-8-sig')
+        logger.info(f"汇总保存至: {summary_path}")
 
     if args.plot and results:
         plot_results(results, output_dir)

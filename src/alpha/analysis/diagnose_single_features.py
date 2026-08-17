@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 from datetime import datetime
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from alpha.config import Config
 from alpha.features.feature_registry import LargeCapFeatureRegistry
 from alpha.mining.preprocessor import DataPreprocessor
@@ -17,7 +18,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s | %(message)s', stre
 logger = logging.getLogger('DiagnoseSingle')
 logging.getLogger('AcademicDualEngine').disabled = True
 
-DATA_PATH = 'factor_mining_pipeline/src/paper/PYSR/hs300_daily_2021-06-30_to_2026-06-30.parquet'
+DATA_PATH = 'data/hs300_daily_2021-06-30_to_2026-06-30.parquet'
 
 def main():
     Config.MARKET = 'hs300'

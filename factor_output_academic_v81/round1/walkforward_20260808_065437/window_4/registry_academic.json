@@ -1,0 +1,238 @@
+{
+  "factors": {
+    "ACAD_005": {
+      "formula": "vol_stability_20d*(ret_1d*0.03255803)",
+      "metrics": {
+        "FM_coef": 0.021223,
+        "FM_se": 0.007717,
+        "FM_tstat": 2.75,
+        "FM_pvalue": 0.008009,
+        "FM_n_periods": 57,
+        "FM_R2_avg": 0.011,
+        "FM_coef_pos_ratio": 0.614,
+        "FM_coef_sig_ratio": 0.3684,
+        "LS_spread": 0.001051,
+        "Rank_IC": 0.0226,
+        "ICIR": 0.2561,
+        "formula": "vol_stability_20d*(ret_1d*0.03255803)",
+        "features": [
+          "body_ratio",
+          "extreme_vol_20d",
+          "vol_stability_20d",
+          "ret_1d",
+          "upper_shadow"
+        ],
+        "complexity": 5
+      },
+      "registered_at": "2026-08-08T12:12:51.791665",
+      "features": [
+        "body_ratio",
+        "extreme_vol_20d",
+        "vol_stability_20d",
+        "ret_1d",
+        "upper_shadow"
+      ]
+    },
+    "ACAD_009": {
+      "formula": "square(rev_1d*0.101234846)",
+      "metrics": {
+        "FM_coef": 0.032368,
+        "FM_se": 0.013078,
+        "FM_tstat": 2.475,
+        "FM_pvalue": 0.016377,
+        "FM_n_periods": 57,
+        "FM_R2_avg": 0.0116,
+        "FM_coef_pos_ratio": 0.7193,
+        "FM_coef_sig_ratio": 0.4737,
+        "LS_spread": 0.001987,
+        "Rank_IC": 0.0531,
+        "ICIR": 0.5986,
+        "formula": "square(rev_1d*0.101234846)",
+        "features": [
+          "rsi_24",
+          "extreme_vol_20d",
+          "rev_1d",
+          "ret_5d",
+          "info_discrete_20d"
+        ],
+        "complexity": 4
+      },
+      "registered_at": "2026-08-08T12:17:58.743115",
+      "features": [
+        "rsi_24",
+        "extreme_vol_20d",
+        "rev_1d",
+        "ret_5d",
+        "info_discrete_20d"
+      ]
+    },
+    "ACAD_016": {
+      "formula": "square(gap*0.06520054)",
+      "metrics": {
+        "FM_coef": 0.030029,
+        "FM_se": 0.011975,
+        "FM_tstat": 2.5076,
+        "FM_pvalue": 0.015081,
+        "FM_n_periods": 57,
+        "FM_R2_avg": 0.0155,
+        "FM_coef_pos_ratio": 0.5789,
+        "FM_coef_sig_ratio": 0.3509,
+        "LS_spread": 0.000715,
+        "Rank_IC": 0.04,
+        "ICIR": 0.381,
+        "formula": "square(gap*0.06520054)",
+        "features": [
+          "turnover_5d",
+          "vol_skew_ratio",
+          "rev_3d",
+          "gap",
+          "turnover_ma_ratio_5_60"
+        ],
+        "complexity": 4
+      },
+      "registered_at": "2026-08-08T12:27:25.586200",
+      "features": [
+        "turnover_5d",
+        "vol_skew_ratio",
+        "rev_3d",
+        "gap",
+        "turnover_ma_ratio_5_60"
+      ]
+    },
+    "ACAD_019": {
+      "formula": "square((pv_corr_20d-vol_10d)*0.09184659)",
+      "metrics": {
+        "FM_coef": -0.001529,
+        "FM_se": 0.012038,
+        "FM_tstat": -0.127,
+        "FM_pvalue": 0.899367,
+        "FM_n_periods": 57,
+        "FM_R2_avg": 0.011,
+        "FM_coef_pos_ratio": 0.5263,
+        "FM_coef_sig_ratio": 0.3684,
+        "LS_spread": 0.000193,
+        "Rank_IC": 0.0303,
+        "ICIR": 0.3805,
+        "formula": "square((pv_corr_20d-vol_10d)*0.09184659)",
+        "features": [
+          "upper_shadow",
+          "extreme_vol_20d",
+          "vol_10d",
+          "pv_corr_20d",
+          "logpv_corr_5d"
+        ],
+        "complexity": 6
+      },
+      "registered_at": "2026-08-08T12:31:04.427038",
+      "features": [
+        "upper_shadow",
+        "extreme_vol_20d",
+        "vol_10d",
+        "pv_corr_20d",
+        "logpv_corr_5d"
+      ]
+    },
+    "ACAD_041": {
+      "formula": "(rev_60d+(rev_1d*rev_1d))*0.0115708895",
+      "metrics": {
+        "FM_coef": 0.020156,
+        "FM_se": 0.011049,
+        "FM_tstat": 1.8243,
+        "FM_pvalue": 0.073447,
+        "FM_n_periods": 57,
+        "FM_R2_avg": 0.0145,
+        "FM_coef_pos_ratio": 0.6667,
+        "FM_coef_sig_ratio": 0.4912,
+        "LS_spread": 0.001866,
+        "Rank_IC": 0.0423,
+        "ICIR": 0.3208,
+        "formula": "(rev_60d+(rev_1d*rev_1d))*0.0115708895",
+        "features": [
+          "rev_60d",
+          "high_low_volume_corr_10d",
+          "ma_cross_10d",
+          "rev_1d",
+          "volume_skew_20d"
+        ],
+        "complexity": 7
+      },
+      "registered_at": "2026-08-08T13:01:24.561871",
+      "features": [
+        "rev_60d",
+        "high_low_volume_corr_10d",
+        "ma_cross_10d",
+        "rev_1d",
+        "volume_skew_20d"
+      ]
+    },
+    "ACAD_042": {
+      "formula": "sign(vol_20d)*-0.013076341",
+      "metrics": {
+        "FM_coef": -0.008394,
+        "FM_se": 0.038382,
+        "FM_tstat": -0.2187,
+        "FM_pvalue": 0.827687,
+        "FM_n_periods": 57,
+        "FM_R2_avg": 0.0171,
+        "FM_coef_pos_ratio": 0.4737,
+        "FM_coef_sig_ratio": 0.5088,
+        "LS_spread": -0.00027,
+        "Rank_IC": 0.0125,
+        "ICIR": 0.0783,
+        "formula": "sign(vol_20d)*-0.013076341",
+        "features": [
+          "vol_20d",
+          "volume_skew_20d",
+          "turnover_60d",
+          "skew_20d",
+          "rev_3d"
+        ],
+        "complexity": 4
+      },
+      "registered_at": "2026-08-08T13:02:41.197477",
+      "features": [
+        "vol_20d",
+        "volume_skew_20d",
+        "turnover_60d",
+        "skew_20d",
+        "rev_3d"
+      ]
+    },
+    "ACAD_044": {
+      "formula": "abs(macd_signal)*-0.019403633",
+      "metrics": {
+        "FM_coef": -0.00247,
+        "FM_se": 0.009968,
+        "FM_tstat": -0.2478,
+        "FM_pvalue": 0.805219,
+        "FM_n_periods": 57,
+        "FM_R2_avg": 0.0126,
+        "FM_coef_pos_ratio": 0.5088,
+        "FM_coef_sig_ratio": 0.4035,
+        "LS_spread": -6.4e-05,
+        "Rank_IC": -0.0264,
+        "ICIR": -0.1878,
+        "formula": "abs(macd_signal)*-0.019403633",
+        "features": [
+          "volume_shock_5d",
+          "macd_signal",
+          "upper_shadow",
+          "turnover_decay_20d",
+          "vol_stability_20d"
+        ],
+        "complexity": 4
+      },
+      "registered_at": "2026-08-08T13:06:09.202635",
+      "features": [
+        "volume_shock_5d",
+        "macd_signal",
+        "upper_shadow",
+        "turnover_decay_20d",
+        "vol_stability_20d"
+      ]
+    }
+  },
+  "meta": {
+    "version": "9.1_ICIR_Prior"
+  }
+}

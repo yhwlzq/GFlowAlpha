@@ -29,14 +29,13 @@ from alpha.config import REPO_ROOT, Config, set_global_seed
 from alpha.data.data_loader import CSI500Loader
 from alpha.mining.preprocessor import DataPreprocessor
 from alpha.mining.orchestrator import MiningOrchestrator
-_REPO_ROOT = REPO_ROOT
 
 logger = logging.getLogger('AcademicDualEngine')
 
 def main(data_path: str, max_trials: int = 50, time_limit: int = 60, debug: bool = False):
-    set_global_seed(42)
+    set_global_seed()
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    Config.OUTPUT_DIR = os.path.join(Config.OUTPUT_ROOT, f"run_{timestamp}")
+    Config.OUTPUT_DIR = os.path.join("factor_output_academic_v81", f"run_{timestamp}")
     os.makedirs(Config.OUTPUT_DIR, exist_ok=True)
 
     logging.basicConfig(
@@ -52,17 +51,6 @@ def main(data_path: str, max_trials: int = 50, time_limit: int = 60, debug: bool
     logger.info(f"加载日频数据: {data_path}")
     data_util = CSI500Loader(path=data_path)
     df = data_util.load()
-
-    if debug:
-        debug_dir = os.path.join(Config.OUTPUT_DIR, 'debug_subsample')
-        os.makedirs(debug_dir, exist_ok=True)
-        symbols = sorted(df['symbol'].unique())[:3]
-        df = df[df['symbol'].isin(symbols)].copy()
-        df = df.sort_values('date').groupby('symbol', sort=False).tail(60).reset_index(drop=True)
-        max_trials = min(max_trials, 2)
-        time_limit = min(time_limit, 2)
-        logger.info(f"[DEBUG] 子样本: {len(symbols)} 只股票 × 60 交易日, "
-                    f"max_trials={max_trials}, time_limit={time_limit}min")
 
     required_cols = ['date', 'symbol', 'open', 'high', 'low', 'close', 'volume', 'amount']
     if not all(col in df.columns for col in required_cols):
@@ -91,7 +79,9 @@ def main(data_path: str, max_trials: int = 50, time_limit: int = 60, debug: bool
             try:
                 pred_all = eval(formula, {"__builtins__": {}}, ns)
                 pred_all = np.where(np.isfinite(pred_all), pred_all, np.nan)
-                backtester.run(pred_all[prep.te_mask], ds['test'][1], ds['test'][2], ds['test'][3], fid)
+                backtester.run(pred_all[prep.te_mask], ds['test'][1], ds['test'][2], ds['test'][3], fid,
+                               open_prices=prep.full_open[prep.te_mask] if prep.full_open is not None else None,
+                               close_prices=prep.full_close[prep.te_mask] if prep.full_close is not None else None)
             except Exception as e:
                 logger.warning(f"{fid} 回测失败: {e}")
 
@@ -101,16 +91,17 @@ def main(data_path: str, max_trials: int = 50, time_limit: int = 60, debug: bool
 def console_main(argv=None):
     parser = argparse.ArgumentParser(description="学术级日频单因子挖掘系统 V9.1")
     parser.add_argument('--data', type=str,
-                        default=os.path.join(_REPO_ROOT, 'data', 'csi500_daily_2020-07-20_to_2026-07-19.parquet'))
-    parser.add_argument('--trials', type=int, default=60)
+                        default=os.path.join(REPO_ROOT, 'data', 'csi500_daily_2021-06-30_to_2026-06-30.parquet'))
+    parser.add_argument('--trials', type=int, default=50)
     parser.add_argument('--time', type=int, default=80)
-    parser.add_argument('--debug', action='store_true',
-                        help='调试模式: 小样本(3只股票×60日)快速冒烟')
     parser.add_argument('--market', type=str, default='zs500', choices=['zs500', 'hs300'],
                         help='市场类型: zs500 (中证500) 或 hs300 (沪深300)')
+    parser.add_argument('--pool', type=str, default='buildin', choices=['buildin', 'alpha158'],
+                        help='特征池: buildin (自建语义因子池) 或 alpha158 (Qlib Alpha158 工程化因子池)')
     args = parser.parse_args(argv)
     Config.MARKET = args.market
-    main(args.data, max_trials=args.trials, time_limit=args.time, debug=args.debug)
+    Config.FEATURE_POOL = args.pool
+    main(args.data, max_trials=args.trials, time_limit=args.time)
 
 
 if __name__ == "__main__":
