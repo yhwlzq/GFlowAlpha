@@ -13,8 +13,8 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 FF5_PATH = (
-    "https://www.factorwar.com/wp-content/uploads/2026/05/"
-    "Fama-French-五因子模型（经典算法）日收益率（截至到20260331）.csv"
+    "https://www.factorwar.com/wp-content/uploads/2026/08/"
+    "Fama-French-五因子模型（经典算法）日收益率（截至到20260630）.csv"
 )
 FF5_URL = urllib.parse.quote(FF5_PATH, safe=":/?=&%")
 

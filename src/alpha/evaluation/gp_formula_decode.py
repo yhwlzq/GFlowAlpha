@@ -34,7 +34,7 @@ logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s | %(levelname)-7s | %(message)s')
 from alpha.config import REPO_ROOT, Config, set_global_seed
 _REPO_ROOT = REPO_ROOT
-_LEGACY_REGISTRY = os.path.join(_REPO_ROOT, 'factor_output_academic_v81', 'gp_baseline_20260815_155058', 'registry_academic.json')
+_LEGACY_REGISTRY = os.path.join(_REPO_ROOT, 'factor_output_academic_v81', 'gp_baseline_20260902_062125', 'registry_academic.json')
 
 _X_RE = re.compile(r'(?<!\w)X(\d+)(?!\w)')
 
@@ -104,7 +104,7 @@ def main():
     parser.add_argument('--registry', type=str, default=_LEGACY_REGISTRY,
                         help='registry_academic.json 路径')
 
-    parser.add_argument('--data', default=os.path.join(_REPO_ROOT, 'data', 'csi500_daily_2021-06-30_to_2026-06-30.parquet'), help='数据路径 (CSV/Parquet)')
+    parser.add_argument('--data', default=os.path.join(_REPO_ROOT, 'data', 'warmup', 'csi500_daily_2020-06-30_to_2026-06-30.parquet'), help='数据路径 (CSV/Parquet)')
    
     parser.add_argument('--dry-run', action='store_true',
                         help='只解码并打印, 不改写文件')

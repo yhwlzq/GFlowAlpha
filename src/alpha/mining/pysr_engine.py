@@ -20,7 +20,7 @@ class PySRMiningEngine:
         self.un_ops = ["square", "abs", "log1p", "sign", "inv"]
         self.bin_ops = ["+", "-", "*", "/"]
 
-    def run(self, X_train: pd.DataFrame, y_train: np.ndarray) -> Optional[Tuple[str, int]]:
+    def run(self, X_train: pd.DataFrame, y_train: np.ndarray, top_k: int = None) -> Optional[Tuple[str, int]]:
         if not HAS_PYSR or X_train.empty:
             return None
         X_tr_s = np.nan_to_num(np.asarray(X_train, dtype=np.float32), nan=0.0, posinf=0.0, neginf=0.0)
@@ -66,6 +66,25 @@ class PySRMiningEngine:
                         logger.info(f"  Best Loss: {best_loss:.6f}  |  Median Loss: {mid_loss:.6f}")
                         if mid_loss > 0 and best_loss / mid_loss > 0.9:
                             logger.warning("复杂度对 loss 改善有限，可能存在过拟合风险")
+
+            # === val-择优模式: 返回 HOF 候选列表 (不动 legacy path) ===
+            if top_k:
+                cands = []
+                for _, row in equations_df.iterrows():
+                    eq = str(row.get(eq_col, '')).replace(" ", "")
+                    cmp_v = int(row[cmp_col]) if cmp_col else 99
+                    if cmp_v < 2 or cmp_v > Config.FORMULA_MAX_CAND_CMPLX:
+                        continue
+                    if not eq or len(eq) > 150:
+                        continue
+                    loss = float(row[loss_col]) if loss_col else float('inf')
+                    score = float(row.get(score_col, 0)) if score_col else 0.0
+                    cands.append({'formula': eq, 'complexity': cmp_v, 'loss': loss, 'score': score})
+                cands.sort(key=lambda d: (-d['score'], d['loss'], d['complexity']))
+                cands = cands[:top_k]
+                if cands:
+                    logger.info(f"返回 {len(cands)} 条候选供稳定性择优 (top_k={top_k})")
+                    return cands
 
             best = model.get_best()
             if best is None:

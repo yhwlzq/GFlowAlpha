@@ -216,7 +216,7 @@ def fetch_csi1000_daily(
 
 def main():
     parser = argparse.ArgumentParser(description="从 Baostock 获取指数日频历史数据")
-    parser.add_argument("--index", type=str, default="csi500", choices=["csi500", "hs300", "csi1000"],
+    parser.add_argument("--index", type=str, default="hs300", choices=["csi500", "hs300", "csi1000"],
                         help="指数: csi500(中证500), hs300(沪深300) 或 csi1000(中证1000, 需 akshare) (默认 csi500)")
     parser.add_argument("--start-date", type=str, default=None, help="2016-06-30")
     parser.add_argument("--end-date", type=str, default=None, help="2021-06-30")
@@ -233,7 +233,7 @@ def main():
 
     if args.index == "hs300":
         filepath = fetch_hs300_daily(
-            start_date=args.start_date or "2021-06-30",
+            start_date=args.start_date or "2020-06-30",
             end_date=args.end_date or "2026-06-30",
             adjustflag=args.adjustflag,
             output_format=args.format,

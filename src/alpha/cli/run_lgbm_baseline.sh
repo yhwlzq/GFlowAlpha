@@ -8,7 +8,7 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 VENV_PY="$REPO_ROOT/.venv/bin/python3"
-DATA="${DATA:-$REPO_ROOT/data/csi500_daily_2021-06-30_to_2026-06-30.parquet}"
+DATA="${DATA:-$REPO_ROOT/data/warmup/csi500_daily_2020-06-30_to_2026-06-30.parquet}"
 
 cd "$REPO_ROOT"
 PYTHONPATH="$REPO_ROOT/src" exec "$VENV_PY" -m alpha.experiments.transform_lgbm_baseline \

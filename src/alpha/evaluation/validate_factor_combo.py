@@ -50,12 +50,12 @@ logger = logging.getLogger('FactorComboValidation')
 FACTORS = {
     'ACAD_029': {
         'formula': 'square(rev_1d*0.115807794)',
-        'features': ['rev_1d', 'dist_52w_low', 'turnover_std_20d', 'dist_52w_high', 'price_accel'],
+        'features': ['rev_1d', 'turnover_std_20d', 'price_accel'],
         'label': '平方反转(rev_1d)',
     },
     'ACAD_043': {
         'formula': 'abs(ma_cross_5d*0.019908553)',
-        'features': ['dist_52w_high', 'mom_smooth_20d', 'ma_cross_5d', 'vol_skew_ratio', 'kurt_20d'],
+        'features': ['mom_smooth_20d', 'ma_cross_5d', 'vol_skew_ratio', 'kurt_20d'],
         'label': '均线偏离(ma_cross_5d)',
     },
     'ACAD_025': {

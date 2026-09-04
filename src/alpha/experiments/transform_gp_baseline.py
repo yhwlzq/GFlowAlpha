@@ -15,7 +15,7 @@ import pandas as pd
 from datetime import datetime
 import statsmodels.api as sm
 
-from alpha.config import Config, set_global_seed
+from alpha.config import Config, set_global_seed, apply_split_mode
 from alpha.data.data_loader import CSI500Loader
 from alpha.mining.safe_ops import SafeOps, TimeSeriesOps
 from alpha.features.feature_registry import UltimateDailyFeatureRegistry
@@ -111,7 +111,9 @@ def _make_icir_fitness(train_dates: np.ndarray):
 
 
 def _safe_square(x):
-    return np.square(np.asarray(x, dtype=np.float64)).astype(np.float32)
+    x = np.clip(np.asarray(x, dtype=np.float64), -1e4, 1e4)
+    res = np.square(x)
+    return np.clip(res, -1e8, 1e8).astype(np.float32)
 
 
 def _safe_abs(x):
@@ -165,15 +167,15 @@ def write_summary_report(gp_factors: List[dict]):
 
 
 def run_gp_baseline(data_path: str,
-                    max_generations: int = 40,
-                    population_size: int = 500,
-                    tournament_size: int = 20,
+                    max_generations: int = 100,
+                    population_size: int = 2000,
+                    tournament_size: int = 5,
                     hall_of_fame_size: int = 15,
-                    parsimony_coefficient: float = 0.002,
+                    parsimony_coefficient: float = 0.01,
                     max_samples: float = 0.7,
                     random_state: int = Config.GP_SEED,
                     n_jobs: int = 2,
-                    stopping_criteria: float = 4.0,
+                    stopping_criteria: float = 15.0,
                     use_fwl: bool = True,
                     ) -> Tuple[List[dict], DataPreprocessor]:
 
@@ -301,7 +303,7 @@ def run_gp_baseline(data_path: str,
     return gp_factors, prep
 
 
-def main(data_path: str, max_generations: int = 40, population_size: int = 500,
+def main(data_path: str, max_generations: int = 100, population_size: int = 2000,
          n_jobs: int = 2, use_fwl: bool = True):
     set_global_seed()
     sys.stdout.reconfigure(line_buffering=True)
@@ -324,13 +326,13 @@ def main(data_path: str, max_generations: int = 40, population_size: int = 500,
         data_path=data_path,
         max_generations=max_generations,
         population_size=population_size,
-        tournament_size=20,
+        tournament_size=5,
         hall_of_fame_size=15,
-        parsimony_coefficient=0.002,
+        parsimony_coefficient=0.01,
         max_samples=0.7,
         random_state=Config.GP_SEED,
         n_jobs=n_jobs,
-        stopping_criteria=4.0,
+        stopping_criteria=15.0,
         use_fwl=use_fwl,
     )
 
@@ -342,14 +344,19 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="GP Baseline: gplearn 遗传规划因子挖掘")
     # hs300_daily_2022-06-30_to_2026-06-30.parquet
     parser.add_argument('--data', type=str,
-                        default='data/csi500_daily_2021-06-30_to_2026-06-30.parquet')
-    parser.add_argument('--generations', type=int, default=40)
-    parser.add_argument('--population', type=int, default=500)
+                        default='data/warmup/csi500_daily_2020-06-30_to_2026-06-30.parquet')
+    parser.add_argument('--generations', type=int, default=100)
+    parser.add_argument('--population', type=int, default=2000)
     parser.add_argument('--jobs', type=int, default=2,
                         help='并行度 (默认 2; 大值时注意内存)')
     parser.add_argument('--no-fwl', action='store_true',
                         help='跳过 FWL 中性化 (测试集 FM 用 raw 数据, 默认 FWL)')
+    parser.add_argument('--mode', type=str, default='warmup', choices=['cold', 'warmup', 'ratio', 'month'],
+                        help='切分模式(与主线一致): warmup(前12月回溯+36:12:12, 默认), cold/ratio/month')
     args = parser.parse_args()
+    apply_split_mode(args.mode)
+    logger.info(f"切分配置: mode={args.mode} (SPLIT_MODE={Config.SPLIT_MODE}, SPLIT_WARMUP={Config.SPLIT_WARMUP}, "
+                f"SPLIT_MONTH_ANCHOR={Config.SPLIT_MONTH_ANCHOR})")
     main(args.data, max_generations=args.generations,
          population_size=args.population, n_jobs=args.jobs,
          use_fwl=not args.no_fwl)

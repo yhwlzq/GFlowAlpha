@@ -33,10 +33,8 @@ import os
 import sys
 import argparse
 from datetime import datetime
-import numpy as np
 import pandas as pd
-from alpha.evaluation.backtester import AcademicBacktester
-from alpha.config import REPO_ROOT, Config, set_global_seed
+from alpha.config import REPO_ROOT, Config, set_global_seed, apply_split_mode
 from alpha.data.data_loader import CSI500Loader
 from alpha.mining.preprocessor import DataPreprocessor
 from alpha.mining.orchestrator import MiningOrchestrator
@@ -81,22 +79,7 @@ def main(data_path: str, max_trials: int = 50, time_limit: int = 60):
     prod_factors = orchestrator.run(max_trials=max_trials, time_limit_min=time_limit)
 
     if prod_factors:
-        logger.info("启动单因子回测...")
-        backtester = AcademicBacktester()
-        for factor in prod_factors[:3]:
-            fid, formula, feats = factor['id'], factor['metrics']['formula'], factor['metrics']['features']
-            ds = prep.get_subset(feats)
-            X_all, d_all, s_all = ds['all'][0], ds['all'][2], ds['all'][3]
-            ns = {f: X_all[:, i] for i, f in enumerate(feats)}
-            ns.update(orchestrator.pysr_ns)
-            try:
-                pred_all = eval(formula, {"__builtins__": {}}, ns)
-                pred_all = np.where(np.isfinite(pred_all), pred_all, np.nan)
-                backtester.run(pred_all[prep.te_mask], ds['test'][1], ds['test'][2], ds['test'][3], fid,
-                               open_prices=prep.full_open[prep.te_mask] if prep.full_open is not None else None,
-                               close_prices=prep.full_close[prep.te_mask] if prep.full_close is not None else None)
-            except Exception as e:
-                logger.warning(f"{fid} 回测失败: {e}")
+        logger.info(f"达标因子 {len(prod_factors)} 个, 回测详情见 fm_summary_report.txt")
 
     print(f"\n消融(no diversity)完成！产出物: {os.path.abspath(Config.OUTPUT_DIR)}")
 
@@ -104,16 +87,21 @@ def main(data_path: str, max_trials: int = 50, time_limit: int = 60):
 def console_main(argv=None):
     parser = argparse.ArgumentParser(description="消融实验: 无多样性控制 (w/o Diversity Control)")
     parser.add_argument('--data', type=str,
-                        default=os.path.join(REPO_ROOT, 'data', 'csi500_daily_2021-06-30_to_2026-06-30.parquet'))
+                        default=os.path.join(REPO_ROOT, 'data', 'warmup', 'csi500_daily_2020-06-30_to_2026-06-30.parquet'))
     parser.add_argument('--trials', type=int, default=50)
     parser.add_argument('--time', type=int, default=80)
     parser.add_argument('--market', type=str, default='zs500', choices=['zs500', 'hs300'],
                         help='市场类型: zs500 (中证500) 或 hs300 (沪深300)')
     parser.add_argument('--pool', type=str, default='buildin', choices=['buildin', 'alpha158'],
                         help='特征池: buildin (自建语义因子池) 或 alpha158 (Qlib Alpha158 工程化因子池)')
+    parser.add_argument('--mode', type=str, default='warmup', choices=['cold', 'warmup', 'ratio', 'month'],
+                        help='切分模式(与主线一致): warmup(前12月回溯+36:12:12, 默认), cold/ratio/month')
     args = parser.parse_args(argv)
     Config.MARKET = args.market
     Config.FEATURE_POOL = args.pool
+    apply_split_mode(args.mode)
+    logger.info(f"切分配置: mode={args.mode} (SPLIT_MODE={Config.SPLIT_MODE}, SPLIT_WARMUP={Config.SPLIT_WARMUP}, "
+                f"SPLIT_MONTH_ANCHOR={Config.SPLIT_MONTH_ANCHOR})")
     main(args.data, max_trials=args.trials, time_limit=args.time)
 
 

@@ -32,22 +32,40 @@ class FeatureMetadataExtractor:
             if not np.isfinite(ic):
                 ic = 0.0
 
-            daily_ic_list = []
-            for dt in np.unique(tr_dates):
-                day_mask = tr_dates == dt
-                n_stocks = day_mask.sum()
-                if n_stocks >= 30:
-                    x_day = X_tr[day_mask, i]
-                    y_day = y_tr[day_mask]
-                    if np.ptp(x_day) < 1e-10 or np.ptp(y_day) < 1e-10:
-                        continue
-                    d_ic = spearmanr(x_day, y_day)[0]
-                    if np.isfinite(d_ic):
-                        daily_ic_list.append(d_ic)
-            if len(daily_ic_list) > 1:
-                icir = float(np.mean(daily_ic_list) / (np.std(daily_ic_list, ddof=1) + 1e-8))
+            if Config.MODE == 'timing':
+                # 时序模式: 用滚动窗口的预测能力稳定性替代截面 ICIR
+                window_size = min(60, len(X_tr) // 3)
+                if window_size > 20:
+                    rolling_ic = []
+                    for start in range(0, len(X_tr) - window_size, window_size // 2):
+                        end = start + window_size
+                        w_ic = spearmanr(X_tr[start:end, i], y_tr[start:end])[0]
+                        if np.isfinite(w_ic):
+                            rolling_ic.append(w_ic)
+                    if len(rolling_ic) > 1:
+                        icir = float(np.mean(rolling_ic) / (np.std(rolling_ic, ddof=1) + 1e-8))
+                    else:
+                        icir = 0.0
+                else:
+                    icir = 0.0
             else:
-                icir = 0.0
+                # 截面模式: 每日截面 IC 的稳定性
+                daily_ic_list = []
+                for dt in np.unique(tr_dates):
+                    day_mask = tr_dates == dt
+                    n_stocks = day_mask.sum()
+                    if n_stocks >= 30:
+                        x_day = X_tr[day_mask, i]
+                        y_day = y_tr[day_mask]
+                        if np.ptp(x_day) < 1e-10 or np.ptp(y_day) < 1e-10:
+                            continue
+                        d_ic = spearmanr(x_day, y_day)[0]
+                        if np.isfinite(d_ic):
+                            daily_ic_list.append(d_ic)
+                if len(daily_ic_list) > 1:
+                    icir = float(np.mean(daily_ic_list) / (np.std(daily_ic_list, ddof=1) + 1e-8))
+                else:
+                    icir = 0.0
 
             corr_without_self = np.delete(np.abs(corr_matrix[i, :]), i)
             avg_abs_corr = np.mean(corr_without_self) if len(corr_without_self) > 0 else 0.0

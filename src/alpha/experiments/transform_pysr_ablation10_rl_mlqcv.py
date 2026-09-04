@@ -39,7 +39,7 @@ import numpy as np
 import pandas as pd
 
 from alpha.evaluation.backtester import AcademicBacktester
-from alpha.config import Config, REPO_ROOT, set_global_seed
+from alpha.config import Config, REPO_ROOT, set_global_seed, apply_split_mode
 from alpha.data.data_loader import CSI500Loader
 from alpha.mining.preprocessor import DataPreprocessor
 from alpha.mining.orchestrator import MiningOrchestrator
@@ -199,7 +199,7 @@ class RLMLQCVOrchestrator(MiningOrchestrator):
                 continue
 
             if Config.USE_RESIDUAL_NEUTRALIZATION:
-                pure_pred, pure_ret = self._neutralize(pred_val, val_ret, val_dates, val_amount)
+                pure_pred, pure_ret = self._neutralize(pred_val, val_ret, val_dates, val_amount, self.prep.val_mask)
             else:
                 pure_pred, pure_ret = pred_val, val_ret
 
@@ -267,7 +267,7 @@ class RLMLQCVOrchestrator(MiningOrchestrator):
 
             if Config.USE_RESIDUAL_NEUTRALIZATION:
                 pure_pred_te, pure_ret_te = self._neutralize(
-                    pred_te, test_ret, test_dates, test_amount
+                    pred_te, test_ret, test_dates, test_amount, self.prep.te_mask
                 )
             else:
                 pure_pred_te, pure_ret_te = pred_te, test_ret
@@ -386,14 +386,19 @@ def main_ablation10_rl_mlqcv(data_path: str, max_trials: int = 50, time_limit: i
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="基准实验 #10: RL+MQLCV (MLQC 四层结果编码为终止奖励)")
     parser.add_argument('--data', type=str,
-                        default=os.path.join(REPO_ROOT, 'data', 'csi500_daily_2021-06-30_to_2026-06-30.parquet'))
+                        default=os.path.join(REPO_ROOT, 'data', 'warmup', 'csi500_daily_2020-06-30_to_2026-06-30.parquet'))
     parser.add_argument('--trials', type=int, default=50)
     parser.add_argument('--time', type=int, default=80)
     parser.add_argument('--market', type=str, default='zs500', choices=['zs500', 'hs300'],
                         help='市场类型: zs500 (中证500) 或 hs300 (沪深300)')
     parser.add_argument('--pool', type=str, default='buildin', choices=['buildin', 'alpha158'],
                         help='特征池: buildin (自建语义因子池) 或 alpha158 (Qlib Alpha158 工程化因子池)')
+    parser.add_argument('--mode', type=str, default='warmup', choices=['cold', 'warmup', 'ratio', 'month'],
+                        help='切分模式(与主线一致): warmup(前12月回溯+36:12:12, 默认), cold/ratio/month')
     args = parser.parse_args()
     Config.MARKET = args.market
     Config.FEATURE_POOL = args.pool
+    apply_split_mode(args.mode)
+    logger.info(f"切分配置: mode={args.mode} (SPLIT_MODE={Config.SPLIT_MODE}, SPLIT_WARMUP={Config.SPLIT_WARMUP}, "
+                f"SPLIT_MONTH_ANCHOR={Config.SPLIT_MONTH_ANCHOR})")
     main_ablation10_rl_mlqcv(args.data, max_trials=args.trials, time_limit=args.time)

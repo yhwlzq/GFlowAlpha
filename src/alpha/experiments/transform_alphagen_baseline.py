@@ -45,7 +45,7 @@ import numpy as np
 import pandas as pd
 import torch
 
-from alpha.config import Config, REPO_ROOT, set_global_seed
+from alpha.config import Config, REPO_ROOT, apply_split_mode, set_global_seed
 from alpha.data.data_loader import CSI500Loader
 from alpha.mining.preprocessor import DataPreprocessor
 from alpha.mining.fm_regression import FamaMacBethRegressor
@@ -346,9 +346,13 @@ def run_alphagen_baseline(
                                  max_future_days=_MAX_FUTURE)
 
     tr_days = sorted(pd.to_datetime(prep.full_dates[prep.tr_mask]).normalize().unique())
-    n_tr = max(0, len(tr_days))
-    logger.info(f"PPO 训练窗口: 前 {n_tr} 个交易日")
-    data_train = _make_stock_data(feat_vals, cal, syms, 0, n_tr, device,
+    tr_cal = pd.DatetimeIndex(tr_days)
+    win_start = int(cal.get_indexer([tr_cal[0]])[0])
+    win_end = int(cal.get_indexer([tr_cal[-1]])[0]) + 1
+    n_tr = len(tr_cal)
+    logger.info(f"PPO 训练窗口: {pd.Timestamp(tr_cal[0]).date()} ~ "
+                f"{pd.Timestamp(tr_cal[-1]).date()} ({n_tr} 个交易日)")
+    data_train = _make_stock_data(feat_vals, cal, syms, win_start, win_end, device,
                                   max_future_days=_MAX_FUTURE)
 
     # ---- 训练: 官方 pool/env + MaskablePPO, target = 1 日收益 (仅用历史) ----
@@ -549,7 +553,7 @@ def console_main(argv=None):
     parser = argparse.ArgumentParser(
         description="AlphaGen (PPO) 外部 RL 基线 (官方 alphagen 训练 + 统一评测)")
     parser.add_argument('--data', type=str,
-                        default=os.path.join(REPO_ROOT, 'data', 'csi500_daily_2021-06-30_to_2026-06-30.parquet'))
+                        default=os.path.join(REPO_ROOT, 'data', 'warmup', 'csi500_daily_2020-06-30_to_2026-06-30.parquet'))
     parser.add_argument('--steps', type=int, default=20000,
                         help='PPO 总时间步数 (默认 20000; 冒烟用 300)')
     parser.add_argument('--time', type=int, default=0,
@@ -558,12 +562,15 @@ def console_main(argv=None):
     parser.add_argument('--seed', type=int, default=42)
     parser.add_argument('--market', type=str, default='zs500', choices=['zs500', 'hs300'])
     parser.add_argument('--feature-pool', type=str, default='buildin', choices=['buildin', 'alpha158'])
+    parser.add_argument('--mode', type=str, default='warmup', choices=['cold', 'warmup', 'ratio', 'month'],
+                        help='切分模式(与主线一致): warmup(前12月回溯+36:12:12, 默认), cold/ratio/month')
     parser.add_argument('--compare', type=str, default=None,
                         help='逗号分隔 tag:path 列表, 与其它方法 registry 对比')
     args = parser.parse_args(argv)
 
     Config.MARKET = args.market
     Config.FEATURE_POOL = args.feature_pool
+    apply_split_mode(args.mode)
     compare = None
     if args.compare:
         compare = []

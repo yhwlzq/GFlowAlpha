@@ -36,7 +36,7 @@ from scipy.stats import spearmanr
 from datetime import datetime
 import sympy as sp
 
-from alpha.config import Config, set_global_seed
+from alpha.config import Config, set_global_seed, apply_split_mode
 from alpha.data.data_loader import CSI500Loader
 from alpha.mining.safe_ops import SafeOps
 from alpha.mining.preprocessor import DataPreprocessor
@@ -101,7 +101,9 @@ def _make_icir_fitness(train_dates: np.ndarray):
 
 
 def _safe_square(x):
-    return np.square(np.asarray(x, dtype=np.float64)).astype(np.float32)
+    x = np.clip(np.asarray(x, dtype=np.float64), -1e4, 1e4)
+    res = np.square(x)
+    return np.clip(res, -1e8, 1e8).astype(np.float32)
 
 
 def _safe_abs(x):
@@ -415,10 +417,15 @@ if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="GP Baseline (对齐版): gplearn 遗传规划因子挖掘")
     parser.add_argument('--data', type=str,
-                        default='data/csi500_daily_2021-06-30_to_2026-06-30.parquet')
+                        default='data/warmup/csi500_daily_2020-06-30_to_2026-06-30.parquet')
     parser.add_argument('--generations', type=int, default=40)
     parser.add_argument('--population', type=int, default=500)
     parser.add_argument('--time-limit', type=int, default=60)
+    parser.add_argument('--mode', type=str, default='warmup', choices=['cold', 'warmup', 'ratio', 'month'],
+                        help='切分模式(与主线一致): warmup(前12月回溯+36:12:12, 默认), cold/ratio/month')
     args = parser.parse_args()
+    apply_split_mode(args.mode)
+    logger.info(f"切分配置: mode={args.mode} (SPLIT_MODE={Config.SPLIT_MODE}, SPLIT_WARMUP={Config.SPLIT_WARMUP}, "
+                f"SPLIT_MONTH_ANCHOR={Config.SPLIT_MONTH_ANCHOR})")
     main(args.data, max_generations=args.generations,
          population_size=args.population, time_limit_min=args.time_limit)

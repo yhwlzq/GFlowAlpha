@@ -16,6 +16,7 @@ dependencies = [
     "statsmodels>=0.14",
     "sympy>=1.12",
     "matplotlib>=3.7",
+    "seaborn>=0.13",
     "lightgbm>=4.0",
     "baostock",
     "juliacall",
@@ -25,6 +26,7 @@ dependencies = [
 [project.optional-dependencies]
 pysr = ["pysr>=1.0"]          # 符号回归引擎 (Julia 后端, 可选)
 gp = ["gplearn"]              # GP 基线 (可选)
+alphagen = ["gymnasium", "stable-baselines3", "sb3-contrib"]  # AlphaGen (PPO) 外部 RL 基线 (可选)
 llm = ["openai>=1.0"]         # LLM 约束生成 (可选)
 akshare = ["akshare>=1.18"]   # 中证1000成分股获取 (可选)
 dev = ["pytest", "pytest-cov"]

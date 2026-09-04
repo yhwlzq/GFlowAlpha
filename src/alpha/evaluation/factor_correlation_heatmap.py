@@ -27,7 +27,7 @@ import pandas as pd
 import seaborn as sns
 from scipy.stats import spearmanr
 
-from alpha.config import REPO_ROOT, Config, set_global_seed
+from alpha.config import REPO_ROOT, Config, apply_split_mode, set_global_seed
 from alpha.data.data_loader import CSI500Loader
 from alpha.mining.preprocessor import DataPreprocessor
 from alpha.mining.safe_ops import SafeOps
@@ -181,21 +181,24 @@ def main():
     parser = argparse.ArgumentParser(description='因子相关性热力图绘制')
     parser.add_argument('--registry', type=str,
                         default=os.path.join(REPO_ROOT, 'factor_output_academic_v81',
-                                             'ablation9_random_no_mlqc_20260807_082338', 'registry_academic.json'),
+                                             'run_20260829_183554', 'registry_academic.json'),
                         help='注册表 JSON 路径')
     parser.add_argument('--data', type=str,
-                        default=os.path.join(REPO_ROOT, 'data',
-                                             'csi500_daily_2021-06-30_to_2026-06-30.parquet'))
+                        default=os.path.join(REPO_ROOT, 'data', 'warmup',
+                                             'csi500_daily_2020-06-30_to_2026-06-30.parquet'))
     parser.add_argument('--output', type=str, default=None,
-                        help='输出目录；默认自动创建带时间戳的运行目录')
+                        help='输出目录；默认自动创建 factor_output_academic_v81/factor_correlation_<ts>')
+    parser.add_argument('--mode', type=str, default='warmup', choices=['cold', 'warmup', 'ratio', 'month'],
+                        help='切分模式(与主线一致): warmup(前12月回溯+36:12:12, 默认), cold/ratio/month')
     parser.add_argument('--seed', type=int, default=Config.SEED)
     args = parser.parse_args()
 
     set_global_seed(args.seed)
+    apply_split_mode(args.mode)
 
     if args.output is None:
         ts = datetime.now().strftime('%Y%m%d_%H%M%S')
-        args.output = os.path.join(REPO_ROOT, 'outputs',
+        args.output = os.path.join(REPO_ROOT, 'factor_output_academic_v81',
                                    f'factor_correlation_{ts}')
     os.makedirs(args.output, exist_ok=True)
 

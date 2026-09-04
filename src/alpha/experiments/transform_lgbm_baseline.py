@@ -7,7 +7,7 @@
 
 方法学 (与符号搜索完全同口径):
   1. 特征: 与符号搜索完全相同, 使用聚类正交化后的 FINAL_FEATURE_POOL (85 个原子因子),
-     同一 6:2:2 划分与标准化 (DataPreprocessor.prepare_full_pool)。
+     同一切分模式 (默认 warmup: 前12月回溯 + 36:12:12) 与标准化 (DataPreprocessor.prepare_full_pool)。
   2. 训练: LightGBM 以 L2 回归预测前向收益, train 集拟合, val 集 early stopping
      (防过拟合, 非质量门禁), random_state 取 Config.LGBM_SEED。
   3. 预测: 同一 test 集 (te_mask) 上模型输出即因子得分。
@@ -351,7 +351,7 @@ def run_lgbm_baseline(data_path: str,
 def console_main(argv=None):
     parser = argparse.ArgumentParser(description="LightGBM 黑盒基线 (85 原子因子, 与符号搜索同特征/同测试集, FWL+FM 评估)")
     parser.add_argument('--data', type=str,
-                        default=os.path.join(REPO_ROOT, 'data', 'csi500_daily_2021-06-30_to_2026-06-30.parquet'))
+                        default=os.path.join(REPO_ROOT, 'data', 'warmup', 'csi500_daily_2020-06-30_to_2026-06-30.parquet'))
     parser.add_argument('--estimators', type=int, default=1000)
     parser.add_argument('--lr', type=float, default=0.05)
     parser.add_argument('--leaves', type=int, default=31)
@@ -366,10 +366,25 @@ def console_main(argv=None):
     parser.add_argument('--pool', type=str, default='buildin', choices=['buildin', 'alpha158'])
     parser.add_argument('--compare', type=str, default=None,
                         help='逗号分隔 tag:path 列表, 与其它方法 registry 对比')
+    parser.add_argument('--mode', type=str, default='warmup', choices=['cold', 'warmup', 'ratio', 'month'],
+                        help='切分模式: warmup(前12月回溯+36:12:12, 默认), cold(冷启动), ratio(6:2:2)')
+    parser.add_argument('--anchor', type=str, default='data_start', choices=['first_07_01', 'data_start'],
+                        help='month 模式的锚点: data_start(默认) 或 first_07_01')
     args = parser.parse_args(argv)
 
     Config.MARKET = args.market
     Config.FEATURE_POOL = args.pool
+    if args.mode == 'ratio':
+        Config.SPLIT_MODE = 'ratio'
+        Config.SPLIT_WARMUP = False
+    elif args.mode == 'warmup':
+        Config.SPLIT_MODE = 'month'
+        Config.SPLIT_MONTH_ANCHOR = 'data_start'
+        Config.SPLIT_WARMUP = True
+    else:
+        Config.SPLIT_MODE = 'month'
+        Config.SPLIT_MONTH_ANCHOR = args.anchor
+        Config.SPLIT_WARMUP = False
     compare = None
     if args.compare:
         compare = []

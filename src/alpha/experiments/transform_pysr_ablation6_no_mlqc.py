@@ -25,7 +25,7 @@ import sys
 import argparse
 from datetime import datetime
 from alpha.evaluation.backtester import AcademicBacktester
-from alpha.config import Config, set_global_seed
+from alpha.config import Config, set_global_seed, apply_split_mode
 from alpha.data.data_loader import CSI500Loader
 from alpha.mining.preprocessor import DataPreprocessor
 from alpha.mining.orchestrator import MiningOrchestrator
@@ -108,8 +108,13 @@ if __name__ == "__main__":
     import pandas as pd
     parser = argparse.ArgumentParser(description="消融实验 #6: 无奖励塑形 (No MLQC)")
     parser.add_argument('--data', type=str,
-                        default='data/csi500_daily_2021-06-30_to_2026-06-30.parquet')
+                        default='data/warmup/csi500_daily_2020-06-30_to_2026-06-30.parquet')
     parser.add_argument('--trials', type=int, default=60)
     parser.add_argument('--time', type=int, default=80)
+    parser.add_argument('--mode', type=str, default='warmup', choices=['cold', 'warmup', 'ratio', 'month'],
+                        help='切分模式(与主线一致): warmup(前12月回溯+36:12:12, 默认), cold/ratio/month')
     args = parser.parse_args()
+    apply_split_mode(args.mode)
+    logger.info(f"切分配置: mode={args.mode} (SPLIT_MODE={Config.SPLIT_MODE}, SPLIT_WARMUP={Config.SPLIT_WARMUP}, "
+                f"SPLIT_MONTH_ANCHOR={Config.SPLIT_MONTH_ANCHOR})")
     main_ablation6_no_mlqc(args.data, max_trials=args.trials, time_limit=args.time)

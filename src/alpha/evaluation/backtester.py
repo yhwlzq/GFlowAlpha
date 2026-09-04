@@ -281,3 +281,110 @@ def _max_drawdown(nav: np.ndarray) -> float:
     running_max = np.maximum.accumulate(nav)
     dd = nav / running_max - 1.0
     return float(np.min(dd))
+
+
+class TimingBacktester:
+    """时序择时回测器 — 信号>0持仓, 信号<=0空仓."""
+
+    def __init__(self, cost_bps: float = 10.0):
+        self.cost_bps = cost_bps
+        self.cost_per_trade = cost_bps / 10000.0
+
+    def run(self, pred: np.ndarray, ret: np.ndarray, datetimes: np.ndarray,
+            fid: str = "") -> dict:
+        """时序择时回测.
+
+        Args:
+            pred: 因子预测值 (T,).>0 表示看多.
+            ret: 指数前瞻收益 (T,).
+            datetimes: 日期数组 (T,).
+
+        Returns:
+            回测结果字典.
+        """
+        df = pd.DataFrame({
+            'date': pd.to_datetime(datetimes).normalize(),
+            'pred': pred,
+            'ret': ret,
+        }).dropna()
+
+        if df.empty:
+            return None
+
+        df = df.sort_values('date').reset_index(drop=True)
+
+        position = np.where(df['pred'].values > 0, 1.0, 0.0)
+        strategy_ret = position * df['ret'].values
+
+        # 计算换手率 (仓位变化)
+        pos_change = np.abs(np.diff(position, prepend=0))
+        turnover = pos_change.sum()
+
+        # 扣除交易成本
+        strategy_ret_net = strategy_ret - pos_change * self.cost_per_trade
+
+        # 净值曲线
+        nav = np.cumprod(1 + strategy_ret_net)
+
+        # 指标
+        n_days = len(df)
+        years = n_days / 252
+
+        total_return = nav[-1] - 1 if len(nav) > 0 else 0.0
+        annual_return = (nav[-1] ** (1 / years) - 1) if years > 0 and nav[-1] > 0 else 0.0
+
+        if np.std(strategy_ret_net) > 1e-10:
+            sharpe = float(np.mean(strategy_ret_net) / np.std(strategy_ret_net) * np.sqrt(252))
+        else:
+            sharpe = 0.0
+
+        max_dd = _max_drawdown(nav)
+
+        # 方向准确率
+        pred_sign = np.sign(df['pred'].values)
+        actual_sign = np.sign(df['ret'].values)
+        direction_accuracy = float(np.mean(pred_sign == actual_sign))
+
+        # 盈亏比
+        gains = strategy_ret_net[strategy_ret_net > 0]
+        losses = strategy_ret_net[strategy_ret_net < 0]
+        if len(gains) > 0 and len(losses) > 0:
+            profit_factor = float(np.sum(gains) / abs(np.sum(losses)))
+        else:
+            profit_factor = 0.0
+
+        # Buy-and-hold 基准
+        bh_nav = np.cumprod(1 + df['ret'].values)
+        bh_return = bh_nav[-1] - 1 if len(bh_nav) > 0 else 0.0
+        bh_annual = (bh_nav[-1] ** (1 / years) - 1) if years > 0 and bh_nav[-1] > 0 else 0.0
+
+        logger.info(f"\n{'=' * 60}")
+        logger.info(f"时序择时回测报告 | {fid}")
+        logger.info(f"{'=' * 60}")
+        logger.info(f"  交易日数:         {n_days}")
+        logger.info(f"  持仓天数:         {int(position.sum())} ({position.mean():.1%})")
+        logger.info(f"  总换手:           {turnover:.2f} (单次)")
+        logger.info(f"  总收益(扣费):     {total_return:.2%}")
+        logger.info(f"  年化收益(扣费):   {annual_return:.2%}")
+        logger.info(f"  Sharpe(扣费):     {sharpe:.4f}")
+        logger.info(f"  最大回撤:         {max_dd:.2%}")
+        logger.info(f"  方向准确率:       {direction_accuracy:.2%}")
+        logger.info(f"  盈亏比:           {profit_factor:.4f}")
+        logger.info(f"  Buy&Hold 年化:    {bh_annual:.2%}")
+        logger.info(f"  超额年化:         {annual_return - bh_annual:.2%}")
+        logger.info(f"{'=' * 60}\n")
+
+        return {
+            'total_return': total_return,
+            'annual_return': annual_return,
+            'sharpe_ratio': sharpe,
+            'max_drawdown': max_dd,
+            'direction_accuracy': direction_accuracy,
+            'profit_factor': profit_factor,
+            'turnover': turnover,
+            'n_days': n_days,
+            'n_hold_days': int(position.sum()),
+            'bh_annual_return': bh_annual,
+            'excess_return': annual_return - bh_annual,
+            'cumulative_nav': nav,
+        }

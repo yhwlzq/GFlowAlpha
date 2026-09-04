@@ -189,7 +189,6 @@ class Alpha158FeatureRegistry:
         full_factors = pd.concat(factor_dfs, ignore_index=True)
 
         full_factors.replace([np.inf, -np.inf], np.nan, inplace=True)
-        full_factors.fillna(0.0, inplace=True)
         for col in full_factors.columns:
             if full_factors[col].dtype == 'float64':
                 full_factors[col] = full_factors[col].clip(-1e3, 1e3).astype(np.float32)

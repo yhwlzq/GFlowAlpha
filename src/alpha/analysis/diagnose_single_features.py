@@ -18,7 +18,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s | %(message)s', stre
 logger = logging.getLogger('DiagnoseSingle')
 logging.getLogger('AcademicDualEngine').disabled = True
 
-DATA_PATH = 'data/hs300_daily_2021-06-30_to_2026-06-30.parquet'
+DATA_PATH = 'data/warmup/hs300_daily_2020-06-30_to_2026-06-30.parquet'
 
 def main():
     Config.MARKET = 'hs300'

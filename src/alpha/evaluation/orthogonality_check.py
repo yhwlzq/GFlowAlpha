@@ -26,14 +26,30 @@ def run_orthogonality(
     all_ff5_cols = [c for c in ff5_df.columns if c != "date"]
     if drop_liq:
         ff5_df = ff5_df.drop(columns=["LIQ"], errors="ignore")
-    merged = pd.merge(factors_df, ff5_df, on="date", how="inner").dropna()
-    logger.info(f"合并数据: {len(merged)} 天, {merged['date'].min().date()} ~ {merged['date'].max().date()}")
-
     factor_cols = [c for c in factors_df.columns if c != "date"]
     if fids:
         requested = [f if f in factors_df.columns else f + "_LS" for f in fids]
         factor_cols = [c for c in requested if c in factors_df.columns]
     ff5_cols = [c for c in ff5_df.columns if c != "date"]
+
+    # 健壮性 (合并前): 剔除覆盖率过低的因子列 (如公式特征缺失仍全 NaN),
+    # 否则任何一列全 NaN 会把 inner 连接的 dropna 帧清空, 导致整个回归崩溃.
+    min_valid = max(30, int(len(factors_df) * 0.5))
+    skipped = [fc for fc in factor_cols
+               if fc not in factors_df.columns
+               or np.isfinite(factors_df[fc]).sum() < min_valid]
+    if skipped:
+        logger.warning(f"跳过覆盖率不足的因子列: {skipped}")
+    factor_cols = [fc for fc in factor_cols if fc not in skipped]
+    if not factor_cols:
+        logger.error("无有效因子列可回归 (均缺失/覆盖率不足), 终止")
+        sys.exit(2)
+
+    merged = pd.merge(factors_df, ff5_df, on="date", how="inner").dropna()
+    if len(merged) < min_valid:
+        logger.error(f"合并后有效样本过少: {len(merged)} 天 (< {min_valid}), 终止")
+        sys.exit(2)
+    logger.info(f"合并数据: {len(merged)} 天, {merged['date'].min().date()} ~ {merged['date'].max().date()}")
 
     dropped_liq = "LIQ" in all_ff5_cols and drop_liq
     rows = []

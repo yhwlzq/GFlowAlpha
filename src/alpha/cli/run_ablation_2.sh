@@ -8,11 +8,13 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 VENV_PY="$REPO_ROOT/.venv/bin/python3"
-DATA="${DATA:-$REPO_ROOT/data/csi500_daily_2021-06-30_to_2026-06-30.parquet}"
+DATA="${DATA:-$REPO_ROOT/data/warmup/csi500_daily_2020-06-30_to_2026-06-30.parquet}"
 ABLATION="${1:-all}"; shift || true
 
 ABLATIONS=(
-  9_random_no_mlqc
+  #9_random_no_mlqc
+   7_no_mlqc_gates
+  # 8_no_gflownet
 )
 
 cd "$REPO_ROOT"

@@ -12,9 +12,17 @@ def is_production_ready(metrics: Dict, gate_status: Optional[str] = None) -> boo
     """统一"生产达标"口径 (所有基线/报告/对比表共用同一把尺)。
 
     判定: 非 WEAK + |t|>=PRODUCT_FMT + |ICIR|>=PRODUCT_ICIR + |IC|>=PRODUCT_IC + 截面期数>=30。
+    时序择时模式: 使用 Timing_* 指标。
     """
     if Config.EXCLUDE_WEAK_FROM_PRODUCTION and gate_status == 'WEAK':
         return False
+    # 时序择时模式: 使用 Timing_* 指标
+    if 'Timing_tstat' in metrics:
+        return (abs(metrics.get('Timing_tstat', 0)) >= Config.PRODUCT_FMT_THRESHOLD and
+                abs(metrics.get('Timing_sharpe', 0)) >= Config.TIMING_SHARPE_THRESHOLD and
+                metrics.get('Timing_dir_acc', 0) >= Config.TIMING_DIRECTION_THRESHOLD and
+                metrics.get('Timing_n', 0) >= 30)
+    # 截面选股模式: 使用 FM_* 指标
     return (abs(metrics.get('FM_tstat', 0)) >= Config.PRODUCT_FMT_THRESHOLD and
             abs(metrics.get('ICIR', 0)) >= Config.PRODUCT_ICIR_THRESHOLD and
             abs(metrics.get('Rank_IC', 0)) >= Config.PRODUCT_IC_THRESHOLD and

@@ -12,11 +12,18 @@ venv/
 env/
 
 # 数据 (大文件, 不入库)
-data/*.parquet
-data/*.csv
+data/
+bak/
+backup/
+*.bak
 
 # 运行产物
 outputs/
+factor_output_academic_v81/
+*.tar
+single_feature_fm_results.csv
+src/alpha/pre_timing_backup/
+src/alpha/features/feature_registry copy*.py
 
 # Julia (PySR) 环境
 julia_env/
@@ -28,3 +35,4 @@ julia_env/
 # 系统
 .DS_Store
 *.log
+src/alpha/cli/2

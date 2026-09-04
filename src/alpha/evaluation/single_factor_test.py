@@ -20,6 +20,11 @@
       --formula "square(rev_1d*0.115807794)" \
       --features rev_1d
 
+  # 切分方式与主线 (transform_pysr_primary) 一致, 默认 warmup: 12/36/12/12 (由 Config 控制):
+  python single_factor_test.py \
+      --data ... --registry ... --id ACAD_042 --mode warmup
+  # 可切换 --mode cold/ratio/month 与 --market zs500/hs300, --pool buildin/alpha158
+
   # 从注册表加载全部因子
   python single_factor_test.py \
       --data CSI500_4Years_2022-06-30_to_2026-06-29.csv \
@@ -63,7 +68,7 @@ from alpha.mining.safe_ops import SafeOps
 from alpha.evaluation.backtester import AcademicBacktester
 
 _REPO_ROOT = REPO_ROOT
-_LEGACY_REGISTRY = os.path.join(_REPO_ROOT, 'factor_output_academic_v81', 'run_20260806_141546', 'registry_academic.json')
+_LEGACY_REGISTRY = os.path.join(_REPO_ROOT, 'factor_output_academic_v81', 'run_20260902_175330', 'registry_academic.json')
 
 logger = logging.getLogger(__name__)
 
@@ -245,6 +250,46 @@ def print_results(results: List[Dict]):
     print()
 
 
+_CJK_FONT_CANDIDATES = [
+    'Noto Serif CJK SC', 'Noto Sans CJK SC', 'Source Han Serif SC', 'Source Han Sans SC',
+    'WenQuanYi Zen Hei', 'WenQuanYi Micro Hei', 'Microsoft YaHei', 'SimHei', 'AR PL UMing CN',
+]
+_CJK_FONT_FILES = [
+    '/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc',
+    '/usr/share/fonts/truetype/wqy/wqy-microhei.ttc',
+    '/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc',
+    '/usr/share/fonts/opentype/noto/NotoSerifCJK-Regular.ttc',
+    '/usr/share/fonts/noto-cjk/NotoSansCJK-Regular.ttc',
+    '/usr/share/fonts/truetype/arphic/uming.ttc',
+    '/usr/share/fonts/truetype/droid/DroidSansFallbackFull.ttf',
+    'C:/Windows/Fonts/msyh.ttc',
+    'C:/Windows/Fonts/simhei.ttf',
+    '/System/Library/Fonts/PingFang.ttc',
+]
+
+
+def _resolve_cjk_font() -> str:
+    try:
+        from matplotlib import font_manager as fm
+    except ImportError:
+        return 'DejaVu Sans'
+    names = {f.name for f in fm.fontManager.ttflist}
+    for fam in _CJK_FONT_CANDIDATES:
+        if fam in names:
+            return fam
+    for path in _CJK_FONT_FILES:
+        if os.path.exists(path):
+            try:
+                fm.fontManager.addfont(path)
+            except Exception:
+                continue
+            names = {f.name for f in fm.fontManager.ttflist}
+            for fam in _CJK_FONT_CANDIDATES:
+                if fam in names:
+                    return fam
+    return 'DejaVu Sans'
+
+
 def plot_results(results: List[Dict], output_dir: str):
     try:
         import matplotlib
@@ -254,8 +299,10 @@ def plot_results(results: List[Dict], output_dir: str):
     except ImportError:
         logger.warning("matplotlib 未安装，跳过画图")
         return
-    rcParams['font.family'] = 'Noto Serif CJK SC'
+    font_family = _resolve_cjk_font()
+    rcParams['font.family'] = font_family
     rcParams['axes.unicode_minus'] = False
+    logger.info(f"图表中文字体: {font_family}")
     n = len(results)
     fig, axes = plt.subplots(n, 2, figsize=(16, 5 * n), squeeze=False)
     for i, r in enumerate(results):
@@ -381,20 +428,29 @@ def print_benchmark_comparison(mined: List[Dict], benchmark: List[Dict]):
 
 def main():
     parser = argparse.ArgumentParser(description='单因子回测评估工具')
-    parser.add_argument('--data', default=os.path.join(_REPO_ROOT, 'data', 'csi500_daily_2021-06-30_to_2026-06-30.parquet'), help='数据路径 (CSV/Parquet)')
+    parser.add_argument('--data', default=os.path.join(_REPO_ROOT, 'data', "warmup" ,'csi500_daily_2020-06-30_to_2026-06-30.parquet'), help='数据路径 (CSV/Parquet)')
     parser.add_argument('--formula', type=str, help='因子公式, 如 "square(rev_1d*0.1158)"')
     parser.add_argument('--features', type=str, nargs='+', help='因子依赖的特征名列表')
     parser.add_argument('--registry', type=str, default=_LEGACY_REGISTRY, help='注册表 JSON 路径 (与 --formula 互斥)')
     parser.add_argument('--id', type=str, help='注册表中的因子 ID (需配合 --registry)')
     parser.add_argument('--no-fwl', action='store_true', help='跳过 FWL 市值中性化 (FM 使用 raw 数据)')
-    parser.add_argument('--long-only', action='store_true',
-                        help='策略: 仅做多 top20% (默认多空 L-S); 报告仍含 L-S 参考指标')
-    parser.add_argument('--cost-bps', type=float, default=30,
+    parser.add_argument('--long-only', action='store_true', default=False,
+                        help='策略: 仅做多 top20%% (默认多空 L-S); 报告仍含 L-S 参考指标')
+    parser.add_argument('--cost-bps', type=float, default=40,
                         help='单腿完整往返交易成本(bps, =单边×2); 默认 30 即单边 15bps')
     parser.add_argument('--compare-cost', action='store_true', help='对比模式: 同时输出 gross (cost=0) 与 net (cost=cost-bps) 结果')
     parser.add_argument('--plot', action='store_true', default=True, help='生成累计净值曲线 + 五分位柱状图')
     parser.add_argument('--output', type=str, default=None, help='输出目录 (默认自动创建)')
     parser.add_argument('--seed', type=int, default=Config.SEED, help='随机种子')
+    parser.add_argument('--market', type=str, default='zs500', choices=['zs500', 'hs300'],
+                        help='市场类型: zs500 (中证500) 或 hs300 (沪深300)')
+    parser.add_argument('--pool', type=str, default='buildin', choices=['buildin', 'alpha158'],
+                        help='特征池: buildin (自建语义因子池) 或 alpha158 (Qlib Alpha158 工程化因子池)')
+    parser.add_argument('--mode', type=str, default='warmup', choices=['cold', 'warmup', 'ratio', 'month'],
+                        help='切分模式(与主线一致): '
+                             'cold(冷启动, 数据首日含首日 36:12:12), '
+                             'warmup(前12月回溯+36:12:12, 默认), '
+                             'ratio(6:2:2), month(走 --anchor 同 data_start)')
     parser.add_argument('--pool-size', type=int, default=999,
                         help='特征聚类目标数 (默认 999 即跳过聚类)')
     parser.add_argument('--benchmark', action='store_true', default=True,
@@ -423,6 +479,24 @@ def main():
     df['date'] = pd.to_datetime(df['date'])
     df = df.sort_values(['symbol', 'date']).reset_index(drop=True)
     logger.info(f"数据加载完成: {len(df)} 行, {df['symbol'].nunique()} 只股票")
+
+    Config.MARKET = args.market
+    Config.FEATURE_POOL = args.pool
+
+    if args.mode == 'ratio':
+        Config.SPLIT_MODE = 'ratio'
+        Config.SPLIT_WARMUP = False
+    elif args.mode == 'warmup':
+        Config.SPLIT_MODE = 'month'
+        Config.SPLIT_MONTH_ANCHOR = 'data_start'
+        Config.SPLIT_WARMUP = True
+    else:
+        Config.SPLIT_MODE = 'month'
+        Config.SPLIT_MONTH_ANCHOR = 'data_start'
+        Config.SPLIT_WARMUP = False
+    logger.info(f"切分配置: mode={args.mode} market={args.market} pool={args.pool} "
+                f"(SPLIT_MODE={Config.SPLIT_MODE}, SPLIT_WARMUP={Config.SPLIT_WARMUP}, "
+                f"SPLIT_MONTH_ANCHOR={Config.SPLIT_MONTH_ANCHOR})")
 
     prev = Config.TARGET_FACTOR_POOL_SIZE
     Config.TARGET_FACTOR_POOL_SIZE = args.pool_size

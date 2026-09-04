@@ -7,21 +7,29 @@
 #
 # 用法:
 #   bash src/alpha/evaluation/run_orthogonality_pipeline.sh \
-#       --data data/csi500_daily_2021-06-30_to_2026-06-30.parquet \
-#       --registry factor_output_academic_v81/run_XXX/registry_academic.json \
+#       [--data data/warmup/csi500_daily_2020-06-30_to_2026-06-30.parquet] \
+#       [--registry factor_output_academic_v81/run_20260831_155911/registry_academic.json] \
 #       [--fids ACAD_014 ACAD_019 ACAD_028 ACAD_038 ACAD_042] \
 #       [--start-date 2025-07-01] [--end-date 2026-06-30] \
-#       [--drop-liq] [--nw-lag 5] \
+#       [--drop-liq] [--nw-lag 5] [--no-neutralize] \
 #       [--extra-panel /path/to/backup_panel.parquet]
+#   缺省参数: data=warmup csi500, registry=run_20260831_155911,
+#             样本外区间 2025-07-01 ~ 2026-06-30,
+#             中性化 = 仅 ln(amount) (Config.NEUTRALIZE_CONTROLS; 与挖矿门禁同口径) <-- 默认开
+#             正交回归剔除 LIQ (FF5-only, --drop-liq 默认)
 #
 # 说明:
 #   - --fids 指定提取的因子 id; 缺省则取 registry 全部因子
-#   - --start-date/--end-date 为样本外(test)区间过滤; 缺省不过滤(不推荐用于正式结论)
+#   - --start-date/--end-date 为样本外(test)区间过滤; 传空串 (--start-date "") 可回到不限区间
 #   - --drop-liq 时, 正交性回归剔除 LIQ (Amihud 因子量纲过小会毒化截距);
 #     保留 FF5 五因子 (MKT/SMB/HML/RMW/CMA)
+#   - 默认: 建 L-S 前逐截面 FWL 中性化 (仅 ln(amount), 与挖矿门禁同口径), 剥离市值暴露后测纯信号 alpha
+#   - --neutralize-multi 仍有效, 但当前 Config.NEUTRALIZE_CONTROLS 默认仅 ["amount"],
+#     若改为 ["amount","turn"] 则自动切为多风险口径; --no-neutralize: 退回裸因子 (不中性化)
+#   - 默认 --drop-liq: 正交回归剔除 LIQ (Amihud 量纲异常会毒化截距; 流动性溢价视为 alpha 的一部分)
 #   - --extra-panel: 从备份面板补合并 registry 缺失的目标因子列
 #     (例如 registry 被清理后 ACAD_038 丢失, 可用含该列的旧面板恢复)
-#   - 输出落在 <registry所在目录>/orthogonality/
+#   - 输出落在 factor_output_academic_v81/orthogonality_<时间戳>/
 # =============================================================================
 set -euo pipefail
 
@@ -30,13 +38,15 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
 PY="$REPO_ROOT/.venv/bin/python"
 
 # ---- 默认参数 ----
-DATA=""
-REGISTRY=""
+DATA="$REPO_ROOT/data/warmup/csi500_daily_2020-06-30_to_2026-06-30.parquet"
+REGISTRY="$REPO_ROOT/factor_output_academic_v81/run_20260831_155911/registry_academic.json"
 FIDS=()
-START_DATE=""
-END_DATE=""
-DROP_LIQ=0
+START_DATE="2025-07-01"
+END_DATE="2026-06-30"
+DROP_LIQ=1
 NW_LAG=5
+NEUTRALIZE=1
+NEUTRALIZE_MULTI=1
 EXTRA_PANEL=""
 
 usage() {
@@ -52,6 +62,9 @@ while [[ $# -gt 0 ]]; do
         --start-date) START_DATE="$2"; shift 2 ;;
         --end-date) END_DATE="$2"; shift 2 ;;
         --drop-liq) DROP_LIQ=1; shift ;;
+        --neutralize) NEUTRALIZE=1; shift ;;
+        --neutralize-multi) NEUTRALIZE_MULTI=1; shift ;;
+        --no-neutralize) NEUTRALIZE_MULTI=0; NEUTRALIZE=0; shift ;;
         --extra-panel) EXTRA_PANEL="$2"; shift 2 ;;
         -h|--help) usage ;;
         *) echo "未知参数: $1" >&2; usage ;;
@@ -63,8 +76,8 @@ done
 [[ -f "$DATA" ]] || { echo "错误: 数据文件不存在: $DATA" >&2; exit 1; }
 [[ -f "$REGISTRY" ]] || { echo "错误: registry 不存在: $REGISTRY" >&2; exit 1; }
 
-RUN_DIR="$(dirname "$REGISTRY")"
-OUT_DIR="$RUN_DIR/orthogonality"
+TS="$(date +%Y%m%d_%H%M%S)"
+OUT_DIR="$REPO_ROOT/factor_output_academic_v81/orthogonality_${TS}"
 mkdir -p "$OUT_DIR"
 
 echo "=========================================================="
@@ -73,6 +86,7 @@ echo " Registry  : $REGISTRY"
 echo " 因子      : ${FIDS[*]:-全部}"
 echo " 区间过滤  : ${START_DATE:-不限} ~ ${END_DATE:-不限}"
 echo " 剔除 LIQ  : $([ "$DROP_LIQ" -eq 1 ] && echo "是" || echo "否")"
+echo " 中性化    : $([ "$NEUTRALIZE_MULTI" -eq 1 ] && echo "是(仅ln(amount), 默认)" || ([ "$NEUTRALIZE" -eq 1 ] && echo "是(仅ln(amount), --neutralize)" || echo "否(裸因子, --no-neutralize)"))"
 echo " NW lag    : $NW_LAG"
 echo " 额外面板  : ${EXTRA_PANEL:-无}"
 echo " 输出目录  : $OUT_DIR"
@@ -87,7 +101,9 @@ echo "[1/4] 构建因子面板: registry → factor_panel.parquet"
     --data "$DATA" \
     --registry "$REGISTRY" \
     --output "$PANEL" \
-    ${FIDS[*]:+--fids "${FIDS[@]}"}
+    ${FIDS[*]:+--fids "${FIDS[@]}"} \
+    $([ "$NEUTRALIZE_MULTI" -eq 1 ] && echo --neutralize-multi) \
+    $([ "$NEUTRALIZE" -eq 1 ] && [ "$NEUTRALIZE_MULTI" -eq 0 ] && echo --neutralize)
 
 # 若有备份面板, 补合并 registry 缺失的目标因子列
 if [[ -n "$EXTRA_PANEL" ]]; then

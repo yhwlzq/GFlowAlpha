@@ -68,8 +68,9 @@ class FamaMacBethRegressor:
                     df[k] = v
             df = df.dropna()
 
-        if df.empty or df['date'].nunique() < 30:
-            logger.warning("FM 回归: 有效数据不足 (需至少 30 个截面期)")
+        min_dates = Config.get_market_config().get('fm_min_stocks', 30)
+        if df.empty or df['date'].nunique() < min_dates:
+            logger.warning(f"FM 回归: 有效数据不足 (需至少 {min_dates} 个截面期)")
             return result
 
         beta_series = []
@@ -79,7 +80,7 @@ class FamaMacBethRegressor:
 
         for dt, grp in df.groupby('date'):
             n_stocks = len(grp)
-            if n_stocks < 30:
+            if n_stocks < Config.get_market_config().get('fm_min_stocks', 30):
                 continue
 
             y = grp['ret'].values
@@ -209,5 +210,154 @@ class FamaMacBethRegressor:
         if result.quantile_returns:
             ret_str = " → ".join([f"{r:.4f}" for r in result.quantile_returns])
             logger.info(f"  分组收益:            {ret_str}")
+        logger.info(f"  NW滞后阶数:          {self.nw_lags}")
+        logger.info(f"{'=' * 60}\n")
+
+
+@dataclass
+class TimingResult:
+    """时序择时评估结果."""
+    t_stat: float = 0.0
+    p_value: float = 1.0
+    coefficient: float = 0.0
+    std_error: float = 0.0
+    direction_accuracy: float = 0.5
+    hit_rate: float = 0.5
+    timing_sharpe: float = 0.0
+    annual_return: float = 0.0
+    max_drawdown: float = 0.0
+    profit_factor: float = 0.0
+    n_periods: int = 0
+    r_squared: float = 0.0
+
+    def is_significant(self, threshold: float = None) -> bool:
+        if threshold is None:
+            threshold = Config.TIMING_SHARPE_THRESHOLD
+        return abs(self.timing_sharpe) >= threshold
+
+    def to_dict(self) -> Dict:
+        return {
+            'Timing_tstat': round(self.t_stat, 4),
+            'Timing_pvalue': round(self.p_value, 6),
+            'Timing_coef': round(self.coefficient, 6),
+            'Timing_dir_acc': round(self.direction_accuracy, 4),
+            'Timing_hit_rate': round(self.hit_rate, 4),
+            'Timing_sharpe': round(self.timing_sharpe, 4),
+            'Timing_ann_ret': round(self.annual_return, 4),
+            'Timing_max_dd': round(self.max_drawdown, 4),
+            'Timing_profit_factor': round(self.profit_factor, 4),
+            'Timing_n': self.n_periods,
+            'Timing_R2': round(self.r_squared, 4),
+        }
+
+
+class TimingEvaluator:
+    """时序择时评估器 — 替代 FM 回归, 用时序 OLS + 方向准确率."""
+
+    def __init__(self, nw_lags: int = None):
+        self.nw_lags = nw_lags if nw_lags is not None else Config.NW_LAGS
+
+    def run(self, factor_values: np.ndarray, returns: np.ndarray,
+            dates: np.ndarray) -> TimingResult:
+        """时序择时评估.
+
+        Args:
+            factor_values: 因子预测值 (T,).
+            returns: 指数前瞻收益 (T,).
+            dates: 日期数组 (T,).
+
+        Returns:
+            TimingResult.
+        """
+        result = TimingResult()
+        mask = np.isfinite(factor_values) & np.isfinite(returns)
+        f = factor_values[mask]
+        r = returns[mask]
+        n = len(f)
+
+        if n < 50:
+            logger.warning(f"TimingEvaluator: 有效样本不足 ({n} < 50)")
+            return result
+
+        result.n_periods = n
+
+        # ── 时序 OLS: r[t] = alpha + beta * f[t] + eps ──
+        X = sm.add_constant(f)
+        try:
+            model = sm.OLS(r, X).fit()
+            result.coefficient = float(model.params[1])
+            result.r_squared = float(model.rsquared)
+
+            # Newey-West 调整
+            try:
+                nw_cov = cov_hac(model, nlags=self.nw_lags, use_correction=True)
+                nw_se = float(np.sqrt(nw_cov[1, 1]))
+                result.std_error = nw_se
+                if nw_se > 1e-10:
+                    result.t_stat = float(model.params[1] / nw_se)
+                else:
+                    result.t_stat = 0.0
+            except Exception:
+                result.std_error = float(model.bse[1])
+                result.t_stat = float(model.tvalues[1])
+
+            df_freedom = n - 2
+            result.p_value = float(2 * (1 - t_dist.cdf(abs(result.t_stat), df_freedom)))
+
+        except Exception as e:
+            logger.warning(f"TimingEvaluator OLS 失败: {e}")
+            return result
+
+        # ── 方向准确率 ──
+        pred_sign = np.sign(f)
+        actual_sign = np.sign(r)
+        result.direction_accuracy = float(np.mean(pred_sign == actual_sign))
+        result.hit_rate = result.direction_accuracy
+
+        # ── 择时 Sharpe (假设信号>0时持仓, 信号<=0时空仓) ──
+        position = np.where(f > 0, 1.0, 0.0)
+        strategy_ret = position * r
+        if np.std(strategy_ret) > 1e-10:
+            result.timing_sharpe = float(np.mean(strategy_ret) / np.std(strategy_ret) * np.sqrt(252))
+        else:
+            result.timing_sharpe = 0.0
+
+        # ── 年化收益 ──
+        cumulative = np.cumprod(1 + strategy_ret)
+        if len(cumulative) > 0 and cumulative[-1] > 0:
+            years = n / 252
+            result.annual_return = float(cumulative[-1] ** (1 / years) - 1) if years > 0 else 0.0
+
+        # ── 最大回撤 ──
+        peak = np.maximum.accumulate(cumulative)
+        drawdown = (cumulative - peak) / np.clip(peak, 1e-8, None)
+        result.max_drawdown = float(np.min(drawdown))
+
+        # ── 盈亏比 ──
+        gains = strategy_ret[strategy_ret > 0]
+        losses = strategy_ret[strategy_ret < 0]
+        if len(gains) > 0 and len(losses) > 0:
+            result.profit_factor = float(np.sum(gains) / abs(np.sum(losses)))
+        else:
+            result.profit_factor = 0.0
+
+        return result
+
+    def print_report(self, result: TimingResult, factor_name: str = "Factor"):
+        sig_marker = "***" if abs(result.t_stat) >= 3.0 else ("**" if abs(result.t_stat) >= 2.0 else "")
+        logger.info(f"\n{'=' * 60}")
+        logger.info(f"时序择时评估报告 | {factor_name}")
+        logger.info(f"{'=' * 60}")
+        logger.info(f"  有效样本数:         {result.n_periods}")
+        logger.info(f"  回归系数:           {result.coefficient:.6f} {sig_marker}")
+        logger.info(f"  NW标准误 (SE):      {result.std_error:.6f}")
+        logger.info(f"  t-stat:             {result.t_stat:.4f} {sig_marker}")
+        logger.info(f"  p-value:            {result.p_value:.6f}")
+        logger.info(f"  R²:                 {result.r_squared:.4f}")
+        logger.info(f"  方向准确率:          {result.direction_accuracy:.2%}")
+        logger.info(f"  择时 Sharpe:         {result.timing_sharpe:.4f}")
+        logger.info(f"  年化收益:            {result.annual_return:.2%}")
+        logger.info(f"  最大回撤:            {result.max_drawdown:.2%}")
+        logger.info(f"  盈亏比:              {result.profit_factor:.4f}")
         logger.info(f"  NW滞后阶数:          {self.nw_lags}")
         logger.info(f"{'=' * 60}\n")
